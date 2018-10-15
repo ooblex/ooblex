@@ -30,4 +30,11 @@ sudo ./install_nginx.sh
 [will request information about a domain name at this point to generate a free SSL certificate]
 ```
 sudo ./install_tensorflow.sh
+sudo ./install_gstreamer.sh
+sudo ./install_janus.sh
+sudo ./install_redis.sh
+```
+You will need to setup a REDIS server of your own.
+```
+sudo ./install_rtc.sh
 ```
