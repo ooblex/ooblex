@@ -38,7 +38,7 @@ sudo ./install_gstreamer.sh
 sudo ./install_janus.sh
 sudo ./install_redis.sh
 ```
-You will need to setup a REDIS sand RabbitMQ erver of your own.
+You will need to setup a REDIS snd RabbitMQ erver of your own.
 ```
 sudo ./install_rtc.sh
 ```
