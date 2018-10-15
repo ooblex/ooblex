@@ -1,4 +1,7 @@
 # Ooblex
+Deployable system for real-time streaming distributed processing, targeting mainly live media and neural network inference.
+
+## Basic System Layout
 ![Flow](untitled_diagram.png)
 
 ## Server Requirements
