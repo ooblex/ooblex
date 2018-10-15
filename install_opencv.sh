@@ -33,6 +33,11 @@ sudo apt-get install -y doxygen
 sudo apt-get install -y python-gi-dev
 
 sudo apt-get install -y unzip wget
+
+rm /tmp/src -r
+mkdir -p /tmp/src && \
+cd /tmp/src
+
 wget https://github.com/opencv/opencv/archive/3.4.0.zip
 unzip 3.4.0.zip
 rm 3.4.0.zip

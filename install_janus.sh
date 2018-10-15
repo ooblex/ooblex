@@ -60,47 +60,48 @@ sudo apt-get install -y --no-install-recommends \
 	libtool \
 	pkg-config
 
-git clone https://boringssl.googlesource.com/boringssl
-cd boringssl
-# Don't barf on errors
-sed -i s/" -Werror"//g CMakeLists.txt
-# Build
-mkdir -p build
-cd build
-cmake -DCMAKE_CXX_FLAGS="-lrt" ..
-make
-cd ..
-# Install
-sudo mkdir -p /opt/boringssl
-sudo cp -R include /opt/boringssl/
-sudo mkdir -p /opt/boringssl/lib
-sudo cp build/ssl/libssl.a /opt/boringssl/lib/
-sudo cp build/crypto/libcrypto.a /opt/boringssl/lib/
+	rm /tmp/src -r
+	mkdir -p /tmp/src && \
+	cd /tmp/src
+	git clone https://boringssl.googlesource.com/boringssl
+	cd boringssl
+	sed -i s/" -Werror"//g CMakeLists.txt
+	mkdir -p build
+	cd build
+	cmake -DCMAKE_CXX_FLAGS="-lrt" ..
+	make
+	cd ..
+	sudo mkdir -p /opt/boringssl
+	sudo cp -R include /opt/boringssl/
+	sudo mkdir -p /opt/boringssl/lib
+	sudo cp build/ssl/libssl.a /opt/boringssl/lib/
+	sudo cp build/crypto/libcrypto.a /opt/boringssl/lib/
 
 	rm /tmp/src -r
 	mkdir -p /tmp/src && \
-
+	cd /tmp/src
 	wget https://www.openssl.org/source/openssl-1.0.2n.tar.gz && \
 	tar -xvf openssl-1.0.2n.tar.gz && \
-	cd openssl-1.0.2n
-	apt-get install crypto-dev && \
+	cd openssl-1.0.2n && \
 	sudo apt-get install build-essential gcc -y && \
 	sudo ./config && \
 	sudo make && \
-	sudo make install
+	sudo make  install && sudo ldconfig
 
-	curl -fSL https://github.com/cisco/libsrtp/archive/v2.0.0.tar.gz -o /tmp/src/libsrtp.tar.gz && \
-	tar xzf /tmp/src/libsrtp.tar.gz -C /tmp/src && \
-	cd /tmp/src/libsrtp-2.0.0 && \
+
+	mkdir -p /tmp/src/ && \
+	cd /tmp/src && \
+	wget https://github.com/cisco/libsrtp/archive/v2.0.0.tar.gz  && \
+	tar xfv v2.0.0.tar.gz && \
+	cd libsrtp-2.0.0 && \
 	./configure --prefix=/usr --enable-openssl && \
-	make shared_library && \
-	sudo make install
-	
+	make shared_library && sudo make install
+
 	mkdir -p /tmp/src/ && \
 	cd /tmp/src/ && \
 	git clone https://github.com/sctplab/usrsctp && \
 	cd /tmp/src/usrsctp && \
-	git checkout 2f6478eb8d40f1766a96b5b033ed26c0c2244589 && \
+	git checkout e9fb1d62b46b03a0f152ac14671ab8f880178a62 && \
 	./bootstrap && \
 	./configure --prefix=/usr && \
 	make && \
@@ -108,7 +109,7 @@ sudo cp build/crypto/libcrypto.a /opt/boringssl/lib/
 	
 	mkdir -p /tmp/src/ && \
         cd /tmp/src/ && \
-	git clone git://git.libwebsockets.org/libwebsockets && \
+	git clone https://libwebsockets.org/repo/libwebsockets && \
 	cd libwebsockets && \
 	git checkout v2.4-stable && \
 	mkdir build && \
