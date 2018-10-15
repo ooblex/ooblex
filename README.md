@@ -1,4 +1,4 @@
-# ooblex
+# Ooblex
 
 ## Server Requirements
 
