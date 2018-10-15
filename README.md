@@ -38,3 +38,4 @@ You will need to setup a REDIS server of your own.
 ```
 sudo ./install_rtc.sh
 ```
+You may need to configure another SSL and domain for the RTC server.
