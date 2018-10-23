@@ -88,14 +88,13 @@ sudo apt-get install -y --no-install-recommends \
 	sudo make && \
 	sudo make  install && sudo ldconfig
 
-
-	mkdir -p /tmp/src/ && \
-	cd /tmp/src && \
-	wget https://github.com/cisco/libsrtp/archive/v2.0.0.tar.gz  && \
-	tar xfv v2.0.0.tar.gz && \
-	cd libsrtp-2.0.0 && \
-	./configure --prefix=/usr --enable-openssl && \
-	make shared_library && sudo make install
+        mkdir -p /tmp/src/ && \
+        cd /tmp/src && \
+        wget https://github.com/cisco/libsrtp/archive/v2.2.0.tar.gz && \
+        tar -xvf v2.2.0.tar.gz && \
+        cd libsrtp-2.2.0 && \
+        ./configure --prefix=/usr --enable-openssl && \
+        make shared_library && sudo make install
 
 	mkdir -p /tmp/src/ && \
 	cd /tmp/src/ && \
