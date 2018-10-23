@@ -52,3 +52,7 @@ cd ~/ooblex/code
 python3 api.py
 ```
 Running the above code will likely show an error -- you will need to modify the api.py file with your domain name, as defined earlier for the SSL certificates.
+
+```
+nano api.py
+```
