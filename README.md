@@ -83,3 +83,9 @@ Try the same thing with the pub.py file, to see if it runs without errors. You w
 cd ~/ooblex/code
 python3 pub.py
 ```
+
+You will also need to test red.py.  This will also require the SSL certificate location to be properly configured. You can use nano or vim to do this. ie: sudo nano.py  
+
+```
+python3 red.py
+```
