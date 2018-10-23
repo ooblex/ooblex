@@ -105,3 +105,12 @@ or a one liner for everything
 cd  ~/ooblex/code/
 sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
 ```
+
+Ensuring that Janus's socket server layer works is required to get rtc.py working also. 
+
+Lastly, once the system is all configured, and each of the several servers are running all together, it is possible to modify the brain.py file, which contains the tensor threads.
+
+The brain.py is configured to operate with a popular video-based facial recognition Tensorflow models, which can be downloaded as needed and implemnted. More detailed explainations on how to program the Tensorthreads is coming, but for now using the brain.py as a template for your own AI scripts is intended.  Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
+
+More explainations on how to use the MJPEG server and WebRTC API is also coming, along with a one-click image deployment of the entire install process pre-assembled. This requires a bit more work with a forthcoming setup-wizard interface.
+
