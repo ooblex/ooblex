@@ -59,3 +59,9 @@ sudo nano api.py
 #### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/api.ooblex.com/fullchain.pem", "/etc/letsencrypt/live/api.ooblex.com/privkey.pem", version=ssl.PROTOCOL_TLSv1)
 to
 #### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/MYDOMAIN/fullchain.pem", "/etc/letsencrypt/live/MYDOMAIN/privkey.pem", version=ssl.PROTOCOL_TLSv1)
+
+Running the api.py file with Python should now start the main API server, however there are several other services that we will need to run.  You can stop this server for now, or push it to the background. (control-Z & bg )
+
+Next, Copy the files in the HTML folder to your /var/www/html folder.
+You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
+You will need to update the domain names from api.ooblex.com to whatever your domain is.
