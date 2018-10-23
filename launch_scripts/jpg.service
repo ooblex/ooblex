@@ -1,0 +1,9 @@
+[Unit]
+Description=motion jpeg server
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /root/ooblex/server/red.py > /root/logs/red.log 2>&1
+[Install]
+WantedBy=multi-user.target
