@@ -90,7 +90,9 @@ You will also need to test red.py.  This will also require the SSL certificate l
 python3 red.py
 ```
 
-and test rabbit.py
+Other than NGINX, with the HTML files, you will need to have the following servers running at the same time.
+
 ```
-python3 rabbit.py
+python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
 ```
+rtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Restart Janus once configured.
