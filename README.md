@@ -119,7 +119,7 @@ More detailed explainations on how to program the Tensorthreads will be helpful,
 Information on the core server files at play:
 ```
 red.py -- JPEG streaming server for low-latency output
-api.py -- The main REST API server,  used for communicating with Ooblex and orchestrating manhy of the system components.
+api.py -- The main REST API server,  used for communicating with Ooblex and orchestrating many of the system components.
 brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based TensorThread model. It is pre-configured with example logic.
 rtc.py -- This is the main API layer for the the WebRTC service
 decoder.py -- This is the main live media deocder thread, configured for live webRTC video ingestion.
