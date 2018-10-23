@@ -89,3 +89,8 @@ You will also need to test red.py.  This will also require the SSL certificate l
 ```
 python3 red.py
 ```
+
+and test rabbit.py
+```
+python3 rabbit.py
+```
