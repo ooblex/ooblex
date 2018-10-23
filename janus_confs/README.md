@@ -18,3 +18,6 @@ janus.transport.http.cfg:65:cert_key = /etc/letsencrypt/live/api.ooblex.com/priv
 janus.transport.websockets.cfg:37:cert_pem = /etc/letsencrypt/live/api.ooblex.com/fullchain.pem
 janus.transport.websockets.cfg:38:cert_key = /etc/letsencrypt/live/api.ooblex.com/privkey.pem
 ```
+
+If feeling aggressive, you can try a one liner to do this:
+find /opt/janus/etc/janus -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
