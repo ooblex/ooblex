@@ -76,3 +76,10 @@ python3 decoder.py
 ```
 
 Any error about image folders can be ignored at this point. If things otherwise works, great!
+
+Try the same thing with the pub.py file, to see if it runs without errors.
+
+```
+cd ~/ooblex/code
+python3 pub.py
+```
