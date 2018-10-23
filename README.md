@@ -110,8 +110,13 @@ Ensuring that Janus's socket server layer works is required to get rtc.py workin
 
 Lastly, once the system is all configured, and each of the several servers are running all together, it is possible to modify the brain.py file, which contains the tensor threads.
 
-The brain.py is configured to operate with a popular video-based facial recognition Tensorflow models, which can be downloaded as needed and implemnted. More detailed explainations on how to program the Tensorthreads is coming, but for now using the brain.py as a template for your own AI scripts is intended.  Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
+The brain.py is configured to operate with a popular video-based facial recognition Tensorflow models, along with some face transformation models (Trump, Taylor), which can be downloaded as needed and implemnted. 
 
+Due to the size of the models, they cannot be hosted directly on github, but they can be downloaded from here: https://api.ooblex.com/models/
+
+More detailed explainations on how to program the Tensorthreads will be helpful, but for now using the brain.py as a template for your own AI scripts is intended. It is quite accessible if familiar with Python. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
+
+Information on the core server files at play:
 ```
 red.py -- JPEG streaming server for low-latency output
 api.py -- One of the two MAIN API servers for communicating with Ooblex
@@ -119,5 +124,5 @@ brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based
 rtc.py -- This is the main API layer for the the WebRTC service
 decoder.py -- This is the main live media deocder thread, configured for live webRTC video ingestion.
 ```
-pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py.  This can be modified or removed as needed for the AI model that is to be deployed.
+pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py.  These can be modified or removed as needed, depending on changes to brain.py
 
