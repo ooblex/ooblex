@@ -93,6 +93,14 @@ python3 red.py
 Other than NGINX, with the HTML files, you will need to have the following servers running at the same time.
 
 ```
-python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
+sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
 ```
-rtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Restart Janus once configured.
+rtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Start the Janus once configured using the following command, and then try starting rtc.py again.
+```
+sudo /opt/janus/bin/janus -o
+```
+
+or a one liner for everything
+```
+sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
+```
