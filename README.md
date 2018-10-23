@@ -102,5 +102,6 @@ sudo /opt/janus/bin/janus -o
 
 or a one liner for everything
 ```
+cd  ~/ooblex/code/
 sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
 ```
