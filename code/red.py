@@ -19,7 +19,7 @@ r = redis.Redis.from_url(redisUrl)
 for key in r.keys('*'):
 	print(key)
 				
-path = '/root/ooblex/server/jpeg.jpg'
+path = '/root/ooblex/code/jpeg.jpg'
 jpeg = open(path,'rb')
 jpeg = jpeg.read()
 print(jpeg)
