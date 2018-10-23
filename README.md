@@ -75,7 +75,7 @@ cd ~/ooblex/code
 python3 decoder.py
 ```
 
-Any error about image folders can be ignored at this point. If things otherwise works, great!
+Any error about image folders can be ignored at this point. If things otherwise works, great! You will likely want to modify the file so that the REDIS and AMPQ connection strings point to your own servers, rather the Ooblex's demo servers.
 
 Try the same thing with the pub.py file, to see if it runs without errors. You will need to configure this to point to your own REDIS server, rather than what might be set by default.
 
