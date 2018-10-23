@@ -80,3 +80,6 @@ sudo ldconfig
 
 ## Increase port size
 sudo /sbin/sysctl -w net.core.rmem_max=33554432 
+
+sudo pip install -U numpy
+sudo pip3 install -U numpy
