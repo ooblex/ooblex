@@ -17,6 +17,7 @@ import uuid
 import logging
 import datetime
 import json
+import config
 #logging.basicConfig(level=logging.DEBUG)
 
 global tokens, clients, keys
@@ -90,7 +91,7 @@ def sendClient(data):
 
 while True:
 	try:
-		mainConnection = UriConnection("amqps://admin:QYGTGMPLVLFYOPRH@portal-ssl494-22.bmix-dal-yp-42bf8654-c98e-426b-b8e4-a9d19926bfde.steve-seguin-email.composedb.com:39186/bmix-dal-yp-42bf8654-c98e-426b-b8e4-a9d19926bfde")
+		mainConnection = UriConnection(config.RABBITMQ_CONFIQ['uri'])
 		break
 	except:
 		continue

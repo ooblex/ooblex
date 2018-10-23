@@ -17,7 +17,6 @@ import logging
 import datetime
 import socket
 from concurrent.futures._base import TimeoutError
-
 #logging.basicConfig(level=logging.DEBUG)
 
 global peers, sessions, rooms, KEEPALIVE_TIMEOUT, SERVER_ADDR, queue, ices, plugins

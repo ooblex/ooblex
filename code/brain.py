@@ -22,6 +22,7 @@ import datetime
 import json
 import math
 import urllib
+import config
 
 from model import autoencoder_A, autoencoder_B, autoencoder_A_swift
 from model import encoder, decoder_A, decoder_B, decoder_A_swift, encoder_swift
@@ -41,8 +42,7 @@ decoder_A_swift.load_weights( "models/decoder256_A_TAYLOR.h5" )
 
 graph = tf.get_default_graph()
 
-redisUrl = "rediss://admin:GSURJCGDVFWYOLYD@portal1369-16.bmix-dal-yp-cbfabb84-69f1-472d-87d7-343fd70e44c6.steve-seguin-email.composedb.com:40299"
-r = redis.Redis.from_url(redisUrl)
+r = redis.Redis.from_url(config.RABBITMQ_CONFIG['uri'])
 #logging.basicConfig(level=logging.DEBUG)
 def tensorThread(something):
 
@@ -330,7 +330,7 @@ def tensorThread(something):
 
 while True:
 	try:
-		mainConnection = UriConnection("amqps://admin:QYGTGMPLVLFYOPRH@portal-ssl494-22.bmix-dal-yp-42bf8654-c98e-426b-b8e4-a9d19926bfde.steve-seguin-email.composedb.com:39186/bmix-dal-yp-42bf8654-c98e-426b-b8e4-a9d19926bfde")
+		mainConnection = UriConnection(config.RABBITMQ_CONFIG['uri'])
 		break
 	except:
 		print("Couldn't connect to rabbitMQ server. Retrying")

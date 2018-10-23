@@ -13,13 +13,14 @@ from socketserver import ThreadingMixIn
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import redis
+import config
+
 global r, pixel
-redisUrl = "rediss://admin:GSURJCGDVFWYOLYD@portal1369-16.bmix-dal-yp-cbfabb84-69f1-472d-87d7-343fd70e44c6.steve-seguin-email.composedb.com:40299"
-r = redis.Redis.from_url(redisUrl)
+r = redis.Redis.from_url(config.REDIS_CONFIG['uri'])
 for key in r.keys('*'):
 	print(key)
 				
-path = '/root/ooblex/code/jpeg.jpg'
+path = '/root/ooblex/assets/jpeg.jpg'
 jpeg = open(path,'rb')
 jpeg = jpeg.read()
 print(jpeg)
@@ -91,8 +92,8 @@ class myHandler(BaseHTTPRequestHandler):
 			self.wfile.write('</body></html>'.encode('utf-8'))
 			return
 
-chain_pem = '/etc/letsencrypt/live/api.ooblex.com/fullchain.pem'
-key_pem = '/etc/letsencrypt/live/api.ooblex.com/privkey.pem'
+chain_pem = '/etc/letsencrypt/live/'+config.DOMAIN_CONFIG['domain']+'/fullchain.pem'
+key_pem = '/etc/letsencrypt/live/'+config.DOMAIN_CONFIG['domain']+'/privkey.pem'
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         """Handle requests in a separate thread."""

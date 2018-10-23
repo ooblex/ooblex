@@ -41,7 +41,7 @@ sudo ./install_redis.sh
 You will need to setup a REDIS and RabbitMQ server of your own. We suggest using a seperate server, perhaps hosted by a cloud provider, rather deploying these services on this install environement.  This will enable many Ooblex deployments to access those systems as a shared resource.
 
 ```
-sudo ./install_rtc.sh
+sudo ./install_webrtc.sh
 ```
 You may need to configure another SSL and domain for the RTC server. It may already be setup though.
 
@@ -84,18 +84,18 @@ cd ~/ooblex/code
 python3 pub.py
 ```
 
-You will also need to test red.py.  This will also require the SSL certificate location to be properly configured. You can use nano or vim to do this. ie: sudo nano.py  
+You will also need to test mjpeg.py.  This will also require the SSL certificate location to be properly configured. You can use nano or vim to do this. ie: sudo nano.py  
 
 ```
-python3 red.py
+python3 mjpeg.py
 ```
 
 Other than NGINX, with the HTML files, you will need to have the following servers running at the same time.
 
 ```
-sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
+sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
 ```
-rtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Start the Janus once configured using the following command, and then try starting rtc.py again.
+webrtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Start the Janus once configured using the following command, and then try starting webrtc.py again.
 ```
 sudo /opt/janus/bin/janus -o
 ```
@@ -103,10 +103,10 @@ sudo /opt/janus/bin/janus -o
 or a one liner for everything
 ```
 cd  ~/ooblex/code/
-sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 red.py & python3 rtc.py &
+sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
 ```
 
-Ensuring that Janus's socket server layer works is required to get rtc.py working also. 
+Ensuring that Janus's socket server layer works is required to get webrtc.py working also. 
 
 Lastly, once the system is all configured, and each of the several servers are running all together, it is possible to modify the brain.py file, which contains the tensor threads.
 
@@ -118,13 +118,13 @@ The brain.py is a template for your own AI scripts. It is quite accessible if yo
 
 Information on the core server files at play:
 ```
-red.py -- JPEG streaming server for low-latency output
+mjpeg.py -- JPEG streaming server for low-latency output
 api.py -- The main REST API server, used for external communication with the Ooblex deployment and orchestrating many of the intenral system components.
 brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based TensorThread model. It is pre-configured with example logic.
 
 tensorthread_shell.py -- THIS IS A SIMPLIFIED version of the above brain.py file. It can be used as a bare bones framework for any PYTHON-based machine learning code.  Plug and play largely, with a very basic amount of sample code / boilerplate.
 
-rtc.py -- This is the main API layer for the the WebRTC service
+webrtc.py -- This is the main API layer for the the WebRTC service
 decoder.py -- This is the main live media deocder thread, configured for live webRTC video ingestion.
 ```
 pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py.  These can be modified or removed as needed, depending on changes to brain.py
