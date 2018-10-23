@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Live Video Inference Test</title>
+<style>
+
+.menu {
+	top: -110px;
+}
+input[type=button], input[type=submit], input[type=reset] {
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+    position: relative;
+    border-radius: 0.8em;
+}
+
+.onstate { background-color: #F00; }
+
+.inactive { display:none; }
+
+.readystate { background-color: #00F; }
+
+body {
+	background: #ffed00;
+	margin:20px;
+	height:100%;
+	overflow: hidden;
+	width:100%;
+	font-size:1em;
+}
+
+
+</style>
+</head>
+<body  id="main">
+
+<script language="javascript" type="text/javascript" src="./js/ooblex.v0.js"></script>
+<script>
+
+var streamToken = null;
+var session = null;
+
+Ooblex.Brain.onOpen = function (evt){
+        console.log("Connected to API server");
+//        document.myform.disconnectButton.disabled = false;
+        streamToken = Ooblex.Media.generateToken();
+        Ooblex.Media.onReady = function () {
+		console.log("Video Stream Active");
+		Ooblex.Brain.doSend("start process:"+streamToken);
+//		document.getElementById("output").src = "https://api.ooblex.com:81/"+streamToken+".mjpg";
+		console.log( "https://api.ooblex.com:81/"+streamToken+".mjpg?init");
+	};
+        Ooblex.Media.connect(streamToken, setupCamera);
+
+}
+
+Ooblex.Brain.onClose = function (evt){
+                console.log("Closed websocket");
+                document.myform.faceOnButton.className = "inactive";
+		document.myform.trumpOnButton.className = "inactive";
+		document.myform.swiftOnButton.className = "inactive";
+                document.myform.imageOnButton.className = "inactive";
+}
+
+Ooblex.Brain.onMessage = function (evt){
+        console.log( evt.data + '\n');
+        if (evt.data.startsWith("https://")){
+		document.getElementById("logs").innerHTML += "<p>Smile detected: <img src='"+evt.data+"'></p>";
+		
+        } else if (evt.data.startsWith("Video Successful")){
+                console.log("Video READY");
+                document.myform.faceOnButton.className = "readystate";
+		document.myform.trumpOnButton.className = "readystate";
+		document.myform.swiftOnButton.className = "readystate";
+                document.myform.imageOnButton.className = "readystate";
+        } else if (!evt.data.startsWith("No task")){
+		document.getElementById("logs").innerHTML += "<p>"+evt.data+"</p>";
+		document.getElementById("logs").scrollTop = document.getElementById("logs").scrollHeight;
+	}
+}
+
+function setupCamera(){
+	Ooblex.Media.createStream(document.getElementById("input"))
+}
+
+Ooblex.Brain.connect();
+
+</script>
+
+
+<form name="myform" class="menu">
+	<p>
+		<input type="button" class="inactive" name=faceOnButton value="Activate Trumpification" onClick="Ooblex.Brain.doTrump(streamToken);this.value='Trumpification Active';document.getElementById('output2').src = 'https://api.ooblex.com:81/'+streamToken+'face.mjpg?normalize';">
+
+		<input type="button" class="inactive" name=trumpOnButton value="Activate Normalization" onClick="Ooblex.Brain.doFace(streamToken);this.value='Normalizer Active';document.getElementById('output2').src = 'https://api.ooblex.com:81/'+streamToken+'face.mjpg?trump';">
+
+		<input type="button" class="inactive" name=swiftOnButton value="Activate Swiftication" onClick="Ooblex.Brain.doSwift(streamToken);this.value='Swiftication Active';document.getElementById('output2').src = 'https://api.ooblex.com:81/'+streamToken+'face.mjpg?swift';">
+
+                <input type="button" class="inactive" name=imageOnButton value="Save Image" onClick="Ooblex.Brain.doImage(streamToken);">
+		<br />
+	</p>
+</form>
+<video id="input"  style="display:inline-block; max-height: 400px;" autoplay muted ></video>
+<img id="output2" style="display:inline-block; max-height: 400px;"></img>
+<p id="logs" style="overflow-y:scroll; scroll-behavior=auto; display:block;height: 600px;"></p><div style='z-index:-2;position:absolute;float:left;bottom:1px;'><small>Chrome Desktop, Firefox Desktop, MS Edge, OSX Safari, and Chrome Android v65+ (or Chrome Canary) all work.<br />Safari on iOS 11 will work in Landscape Mode.<br />A solid internet connection with at least 2-mbps upload recommended.</small></div>
+<!-- Start of HubSpot Embed Code -->
+<script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/4588863.js"></script>
+<!-- End of HubSpot Embed Code -->
+</body>
+</html> 
+
