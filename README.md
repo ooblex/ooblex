@@ -77,7 +77,7 @@ python3 decoder.py
 
 Any error about image folders can be ignored at this point. If things otherwise works, great!
 
-Try the same thing with the pub.py file, to see if it runs without errors.
+Try the same thing with the pub.py file, to see if it runs without errors. You will need to configure this to point to your own REDIS server, rather than what might be set by default.
 
 ```
 cd ~/ooblex/code
