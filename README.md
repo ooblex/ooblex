@@ -38,7 +38,7 @@ sudo ./install_gstreamer.sh
 sudo ./install_janus.sh
 sudo ./install_redis.sh
 ```
-You will need to setup a REDIS snd RabbitMQ server of your own. We suggest using a seperate server, perhaps hosted by a cloud provider, rather deploying these services on this install environement.  This will enable many Ooblex deployments to access those systems as a shared resource.
+You will need to setup a REDIS and RabbitMQ server of your own. We suggest using a seperate server, perhaps hosted by a cloud provider, rather deploying these services on this install environement.  This will enable many Ooblex deployments to access those systems as a shared resource.
 
 ```
 sudo ./install_rtc.sh
@@ -47,7 +47,8 @@ You may need to configure another SSL and domain for the RTC server. It may alre
 
 The dependencies for Ooblex are largely now installed. We can enter the code directory now and configure some final settings.
 
-``` cd ~/ooblex/code
+```
+cd ~/ooblex/code
 python3 api.py
 ```
 Running the above code will likely show an error -- you will need to modify the api.py file with your domain name, as defined earlier for the SSL certificates.
