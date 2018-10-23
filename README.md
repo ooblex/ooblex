@@ -51,8 +51,8 @@ The dependencies for Ooblex are largely now installed. We can enter the code dir
 cd ~/ooblex/code
 python3 api.py
 ```
-Running the above code will likely show an error -- you will need to modify the api.py file with your domain name, as defined earlier for the SSL certificates.
+Running the above code will likely show an error -- you will need to modify the api.py file with your domain name, as defined earlier for the SSL certificates. To do so, try the following command to open a common editor, going to the end of the document, and updating the file with the correct settings. 
 
 ```
-nano api.py
+sudo nano api.py
 ```
