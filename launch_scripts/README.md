@@ -14,6 +14,8 @@ We then then want to reset things and ensure scripts boot at start
 sudo systemctl daemon-reload
 sudo systemctl enable myscript.service
 ```
-scripts can be tested by means of: systemctl start webrtc
-
+scripts can then be tested by means of: 
+```
+systemctl start webrtc
+```
 I'm using the default janus service script, so the logs should go to the default location I think.
