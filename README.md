@@ -121,8 +121,13 @@ Information on the core server files at play:
 red.py -- JPEG streaming server for low-latency output
 api.py -- The main REST API server, used for external communication with the Ooblex deployment and orchestrating many of the intenral system components.
 brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based TensorThread model. It is pre-configured with example logic.
+
+tensorthread_shell.py -- THIS IS A SIMPLIFIED version of the above brain.py file. It can be used as a bare bones framework for any PYTHON-based machine learning code.  Plug and play largely, with a very basic amount of sample code / boilerplate.
+
 rtc.py -- This is the main API layer for the the WebRTC service
 decoder.py -- This is the main live media deocder thread, configured for live webRTC video ingestion.
 ```
 pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py.  These can be modified or removed as needed, depending on changes to brain.py
+
+tensorthread_shell.py does not actually run-- but it is used as an example / boilerplate to create your own custom tensorthread processes. Each Tensorthread can store in memory dozens or hundreds of models, assuming sufficient system RAM.
 
