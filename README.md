@@ -114,7 +114,7 @@ The brain.py is configured to operate with a popular video-based facial recognit
 
 Due to the size of the models, they cannot be hosted directly on github, but they can be downloaded from here: https://api.ooblex.com/models/
 
-More detailed explainations on how to program the Tensorthreads will be helpful, but for now using the brain.py as a template for your own AI scripts is intended. It is quite accessible if familiar with Python. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
+The brain.py is a template for your own AI scripts. It is quite accessible if you're familiar with Python. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
 
 Information on the core server files at play:
 ```
