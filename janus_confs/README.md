@@ -23,3 +23,9 @@ If feeling aggressive, you can try a one liner to do this:
 ```
 find /opt/janus/etc/janus -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
 ```
+
+Once configured, you can start janus with the following:
+
+```
+sudo /opt/janus/bin/janus -o
+```
