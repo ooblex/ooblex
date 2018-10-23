@@ -56,6 +56,6 @@ Running the above code will likely show an error -- you will need to modify the 
 ```
 sudo nano api.py
 ```
-server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/api.ooblex.com/fullchain.pem", "/etc/letsencrypt/live/api.ooblex.com/privkey.pem", version=ssl.PROTOCOL_TLSv1)
+#### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/api.ooblex.com/fullchain.pem", "/etc/letsencrypt/live/api.ooblex.com/privkey.pem", version=ssl.PROTOCOL_TLSv1)
 to
-server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/MYDOMAIN/fullchain.pem", "/etc/letsencrypt/live/MYDOMAIN/privkey.pem", version=ssl.PROTOCOL_TLSv1)
+#### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/MYDOMAIN/fullchain.pem", "/etc/letsencrypt/live/MYDOMAIN/privkey.pem", version=ssl.PROTOCOL_TLSv1)
