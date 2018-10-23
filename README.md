@@ -31,7 +31,7 @@ sudo ./install_opencv.sh
 ```
 sudo ./install_nginx.sh
 ```
-[will request information about a domain name at this point to generate a free SSL certificate]
+[will request information about a domain name at this point to generate a free SSL certificate. If asked, redirecting from HTTP to HTTPS if asked is preferable]
 ```
 sudo ./install_tensorflow.sh
 sudo ./install_gstreamer.sh
@@ -65,3 +65,14 @@ Running the api.py file with Python should now start the main API server, howeve
 Next, Copy the files in the HTML folder to your /var/www/html folder.
 You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
 You will need to update the domain names from api.ooblex.com to whatever your domain is.
+
+At this point, going to your domain in your browser should show a yellow display. 
+
+Next, in ~/ooblex/code, we can try running our next service:
+
+```
+cd ~/ooblex/code
+python3 decoder.py
+```
+
+Any error about image folders can be ignored at this point. If things otherwise works, great!
