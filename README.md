@@ -156,3 +156,14 @@ pixel_shuffler.py, npy files, and model.py files support the alread-configured A
 
 tensorthread_shell.py does not actually run-- but it is used as an example / boilerplate to create your own custom tensorthread processes. Each Tensorthread can store in memory dozens or hundreds of models, assuming sufficient system RAM. 
 
+### Future Work
+
+We would like Tensor Threads to not need any touching at all, and would prefer models to be hosted in an on-demand database that Tensor Threads can pull from. This on-demand database would be accessible via a webinterface, which can allow for models to be uploaded as microservices or pulled directly from model training tools like IBM Watson. 
+
+This system would also intelligently optimize the model being pulled to meet the architecture being deployed to: Intel CPU, FPGA, ARM, TPU, & Nvidia. Intelligent in-memory model caching and orchestrating of the Tensor Threads would adapt resources and processign demands as needed.
+
+We would like to increase accessibility for data-ingestion devices, using simple images, including for the Raspberry Pi using WebRTC. We would also like to maintain cloud-hosted deployable one-click images of the system, so that anyone can have it up and running within moments.
+
+We would like to develop a toolkit for embedded devices and mobile devices, to allow for flexible deployment of Ooblex, along with centralized remote management of deployments. 
+
+The list goes on. 
