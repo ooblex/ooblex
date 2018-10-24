@@ -10,13 +10,18 @@ Ooblex is comprised of several services, including those for media and inference
 
 Ooblex was developed for use on a server with a solid internet connection, an Intel 28-core CPU, and 16-GB of RAM. System requirements will vary greatly depending on application, however our goal is to allow for deployment onto even edge devices, such as a Raspberry Pi 3 with an attached Intel Movidous AI accelerator.
 
-A domain name is required for a full installation as SSL is often required for WebRTC browser support. Point a valid domain (or subdomain) at your public server's IP address.
-It is also recommended that all ports be made available and open to the server, as port tunneling and WebRTC TURN servers are out of scope of the provided support.
+A domain name is required for a full installation as SSL is often required for WebRTC browser support. Point a valid domain (or subdomain) at your public server's IP address. I might recommend Namecheap.com and searching for something for $1 that you can use if just testing. 
+
+It is also recommended that all ports be made available and open to the server, as port tunneling and WebRTC TURN servers are out of scope of the provided support here. 
 
 ## Installing onto Ubuntu 18.04
 
-We're are assuming a working and fresh deployment of a Ubuntu server. 
-If a GRUB error occurs during installation, please see: https://askubuntu.com/questions/1040974/ubuntu-server-18-04-apt-get-fails
+We're are assuming a working and fresh deployment of a Ubuntu server, logged in as the root user in this example.
+
+If a GRUB error occurs during installation, you may need to load the maintainer's default. Please see: https://askubuntu.com/questions/1040974/ubuntu-server-18-04-apt-get-fails
+
+Otherwise, start by entering the following commands, line by line, into the Ubuntu terminal.
+
 ```
 cd ~
 sudo apt-get update
@@ -25,48 +30,49 @@ git clone https://github.com/ooblex-ai/ooblex/
 
 cd ooblex
 sudo chmod +x *.sh
+
 sudo ./install_opencv.sh
 ```
-[building OpenCV can take an hour or more]
+We should now be building OpenCV, which can take 30 minutes to a few hours to install.
 ```
 sudo ./install_nginx.sh
 ```
-[will request information about a domain name at this point to generate a free SSL certificate. If asked, redirecting from HTTP to HTTPS if asked is preferable]
+During the NGINX install, it will request information about a domain name to generate a free SSL certificate. As mentioned in the requirements above, you will need to have a domain name pointing at your server for this to work. Also, if asked, redirecting from HTTP to HTTPS is preferred.
 ```
 sudo ./install_tensorflow.sh
 sudo ./install_gstreamer.sh
 sudo ./install_janus.sh
+sudo ./install_webrtc.sh
 sudo ./install_redis.sh
 ```
-You will need to setup a REDIS and RabbitMQ server of your own. We suggest using a seperate server, perhaps hosted by a cloud provider, rather deploying these services on this install environement.  This will enable many Ooblex deployments to access those systems as a shared resource.
+The dependencies for Ooblex are largely now installed as we have now installed several core components. You will still need to deploy a REDIS and RabbitMQ server of your own though. If you are deploying to the cloud, your cloud provider may offer these as hosted services. 
 
+We can enter the code directory now and configure some final settings.
+
+Edit the config.py file so that it uses 'your' REDIS and RabbitMQ uri is used. Also, you will need enter the domain name used when configuring the SSL certificate earlier.
+
+You can edit the config.py with the following command:
 ```
-sudo ./install_webrtc.sh
+sudo nano api.py
 ```
-You may need to configure another SSL and domain for the RTC server. It may already be setup though.
+or use vim if you are cool enough to know how to use that.
 
-The dependencies for Ooblex are largely now installed. We can enter the code directory now and configure some final settings.
-
+Next, let's test things out:
 ```
 cd ~/ooblex/code
 python3 api.py
 ```
-Running the above code will likely show an error -- you will need to modify the api.py file with your domain name, as defined earlier for the SSL certificates. To do so, try the following command to open a file editor, going to the end of the document, and updating the file with the correct settings. 
+Running the api.py file with Python should now start the main API server, however there are several other services that we will need to run.  You can stop this server for now, or push it to the background ie) control-Z & bg
 
+Next, lets copy the files in the HTML folder to your /var/www/html folder.
+
+``` 
+sudo cp ~/ooblex/html /var/www/html
 ```
-sudo nano api.py
-```
-#### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/api.ooblex.com/fullchain.pem", "/etc/letsencrypt/live/api.ooblex.com/privkey.pem", version=ssl.PROTOCOL_TLSv1)
-to
-#### server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/MYDOMAIN/fullchain.pem", "/etc/letsencrypt/live/MYDOMAIN/privkey.pem", version=ssl.PROTOCOL_TLSv1)
 
-Running the api.py file with Python should now start the main API server, however there are several other services that we will need to run.  You can stop this server for now, or push it to the background. (control-Z & bg )
-
-Next, Copy the files in the HTML folder to your /var/www/html folder.
 You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
 You will need to update the domain names from api.ooblex.com to whatever your domain is.
-
-At this point, going to your domain in your browser should show a yellow display. 
+At this point, going to your domain in your browser should show a yellow website. 
 
 Next, in ~/ooblex/code, we can try running our next service:
 
@@ -84,7 +90,7 @@ cd ~/ooblex/code
 python3 pub.py
 ```
 
-You will also need to test mjpeg.py.  This will also require the SSL certificate location to be properly configured. You can use nano or vim to do this. ie: sudo nano.py  
+You will also need to test mjpeg.py.  This will also require the SSL certificate location to be properly configured.
 
 ```
 python3 mjpeg.py
@@ -114,20 +120,39 @@ The brain.py is configured to operate with a popular video-based facial recognit
 
 Due to the size of the models, they cannot be hosted directly on github, but they can be downloaded from here: https://api.ooblex.com/models/
 
-The brain.py is a template for your own AI scripts. It is quite accessible if you're familiar with Python. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this brain.py file for rapid deployment of a high performing, low-latency. serialized model.
+If setup correctly, along with the remote model files, the HTML files we hosted (the yellow website) should enable the Ooblex Demo to work.
+
+### Tensor Threads
+
+The tensorthread_shell.py is a template for your own AI scripts: it is what brain.py uses for its own demo code. It is quite accessible if you're familiar with Python and Tensorflow already. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this tensorthread_shell.py file for rapid deployment of a high performing, low-latency, serialized model-- virtually no coding needed.
+
+brain.py, or tensorthread_shell.py for that matter, can be distributed and run across many servers. Just repeat the above setup steps but instead just run brain.py (or tensorthread_shell.py), without any of the other services loaded on that new server. The Tensor Threads will work on AI tasks from the main REDIS/RabbitMQ queue and accelerate the overall system's processing performance!  It can easily also be run on Windows or deployed to virtually any system that supports Python and Tensorflow (or TensorRT).
+
+### OpenVINO
+
+Tensor Threads do not need to use TensorFlow, nor AI logic in general, so what is loaded into them can vary based on your needs. We have successfully validated that OpenVINO, Caffe, PyTorch, and TensorRT, can replace Tensorflow within these Tensor Threads for deployment of the code onto even embedded devices. 
+
+### Advanced
+
+While the above install is pretty rudementry, Ooblex was designed as a set of services that are loosely tied to each other. Running each component on its own server, or multiple copies of a single component across many servers, is easy to accomplish and allows for quite a bit of performance scaling. 
+
+In this demo installation and deployment, we look at Ooblex working as a whole, but individual components can also bring value on their own. The WebRTC gateway is optional if receieving data from a remote security camera. The WebRTC component can also be used indepedently of the Tensor Threads, if live media streaming capabilities is all that is required.
 
 Information on the core server files at play:
 ```
-mjpeg.py -- JPEG streaming server for low-latency output
+mjpeg.py -- JPEG streaming server for low-latency output. 
+
 api.py -- The main REST API server, used for external communication with the Ooblex deployment and orchestrating many of the intenral system components.
-brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based TensorThread model. It is pre-configured with example logic.
+
+brain.py -- This contains the Tensor Thread code as a wrapper for a Python-based TensorThread model. It is pre-configured with example logic. This particular script can be loaded onto many different machines, and as long as they have access to the RabbitMQ and REDIS server, they will assist in processing.
 
 tensorthread_shell.py -- THIS IS A SIMPLIFIED version of the above brain.py file. It can be used as a bare bones framework for any PYTHON-based machine learning code.  Plug and play largely, with a very basic amount of sample code / boilerplate.
 
 webrtc.py -- This is the main API layer for the the WebRTC service
+
 decoder.py -- This is the main live media deocder thread, configured for live webRTC video ingestion.
 ```
-pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py.  These can be modified or removed as needed, depending on changes to brain.py
+pixel_shuffler.py, npy files, and model.py files support the alread-configured AI models loaded in brain.py. These can be modified or removed as needed, depending on changes to brain.py
 
-tensorthread_shell.py does not actually run-- but it is used as an example / boilerplate to create your own custom tensorthread processes. Each Tensorthread can store in memory dozens or hundreds of models, assuming sufficient system RAM.
+tensorthread_shell.py does not actually run-- but it is used as an example / boilerplate to create your own custom tensorthread processes. Each Tensorthread can store in memory dozens or hundreds of models, assuming sufficient system RAM. 
 
