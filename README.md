@@ -166,4 +166,5 @@ We would like to increase accessibility for data-ingestion devices, using simple
 
 We would like to develop a toolkit for embedded devices and mobile devices, to allow for flexible deployment of Ooblex, along with centralized remote management of deployments. 
 
-The list goes on. 
+Last but not least, increased readibility of the code, better seperation of the services, better virtual server support, and general code clean up is still all greatly needed.
+
