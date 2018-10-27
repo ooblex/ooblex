@@ -53,7 +53,7 @@ Edit the config.py file so that it uses 'your' REDIS and RabbitMQ uri is used. A
 
 You can edit the config.py with the following command:
 ```
-sudo nano api.py
+sudo nano config.py
 ```
 or use vim if you are cool enough to know how to use that.
 
