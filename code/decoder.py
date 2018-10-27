@@ -188,7 +188,7 @@ def gstreamer_process(body):
 
 while True:
 	try:
-		mainConnection = UriConnection(config.RABBITMQ_CONIFG['uri'])
+		mainConnection = UriConnection(config.RABBITMQ_CONFIG['uri'])
 		break
 	except:
 		print("Unable to connect to RabbitMQ. Retrying..")
