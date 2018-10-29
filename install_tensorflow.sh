@@ -16,3 +16,4 @@ sudo make install
 sudo echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> ~/.bashrc
 sudo pip3 install --upgrade https://github.com/mind/wheels/releases/download/tf1.7-cpu/tensorflow-1.7.0-cp36-cp36m-linux_x86_64.whl
 sudo pip3 install keras
+sudo pip3 install --upgrade --force-reinstall numpy
