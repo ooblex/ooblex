@@ -89,20 +89,19 @@ You will also need to test mjpeg.py.  This will also require the SSL certificate
 python3 mjpeg.py
 ```
 
-Other than NGINX, with the HTML files, you will need to have the following servers running at the same time.
+webrtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Start the Janus once configured using the following command, and then test to ensure webrtc.py starts.
 
-```
-sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
-```
-webrtc.py will fail if Janus is also not started and configured first.  Please see the Janus_config folder for instructions on how to configure Janus.  Start the Janus once configured using the following command, and then try starting webrtc.py again.
 ```
 sudo /opt/janus/bin/janus -o
 ```
 
+You will need to have the following servers running at the same time as well for things to now run, so together,
 or a one liner for everything
 ```
 cd  ~/ooblex/code/
-sudo /opt/janus/bin/janus -o & python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
+sudo /opt/janus/bin/janus -o 
+# wait a moment for Janus to start, then
+sudo python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
 ```
 
 Ensuring that Janus's socket server layer works is required to get webrtc.py working also. 
