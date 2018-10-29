@@ -59,7 +59,6 @@ def tensorThread(something):
 		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		return image
 
-	create_graph()
 	minsize = 200 # minimum size of face
 	threshold = [ 0.5, 0.6, 0.7 ]	# three steps's threshold
 	factor = 0.709 # scale factor
