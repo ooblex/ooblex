@@ -123,11 +123,7 @@ def tensorThread(something):
 		msg0.ack()
 		return
 			
-################
-	#print("loading object detector")
-	#sess_thing = tf.Session()
-	#softmax_tensor = sess_thing.graph.get_tensor_by_name('softmax:0')
-################
+
 	print("loading face detector")
 	sess_face = tf.Session()
 	pnet, rnet, onet = detect_face.create_mtcnn(sess_face, None)
@@ -137,17 +133,7 @@ def tensorThread(something):
 	cv2.ellipse(alpha, (int(W/2), int(H/2)), (int(W/2-3), int(H/2-3)), 0.0, 0.0, 360.0, (255, 255, 255), -1, cv2.LINE_AA);
 	alpha = cv2.GaussianBlur(alpha, (21,21),14 )
 	alpha = cv2.cvtColor(alpha, cv2.COLOR_GRAY2BGR)/255.0
-##############
-	#print("loading smile detector")
-	#sess_smile = tf.Session()
-	#with tf.gfile.FastGFile("emotions.pb", 'rb') as f:
-	#	graph_def = tf.GraphDef()
-	#	graph_def.ParseFromString(f.read())
-	#	_ = tf.import_graph_def(graph_def, name='')
-	#frame_window = 10
-	#emotion_offsets = (20, 40)
-	#smile_input_layer = sess_smile.graph.get_tensor_by_name('output_node0:0')
-###########################
+
 	def faceDetection(img, token, rid, dectype="trump"):
 		global graph, r
 		img2=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -220,22 +206,6 @@ def tensorThread(something):
 		r.publish(token+"face", rid)
 		#print(token,rid)
 		return
-#			predictions = sess_smile.run(smile_input_layer, {'input_1:0': face})
-#			predictions = np.squeeze(predictions)
-#			emote = np.where(predictions==np.amax(predictions))[0]
-#			if (emote==3):
-				#print("happy score: "+str(predictions[3]))
-#				if (predictions[3]>0.5):
-#					sendMessage("Smile Detected!", token)
-#					filename = uuid.uuid4().hex+".jpg"
-#					cv2.imwrite("/var/www/html/images/"+filename,cv2.cvtColor(img,cv2.COLOR_RGB2BGR))
-					#print("https://api.ooblex.com/images/"+filename)
-#					sendMessage("https://api.ooblex.com/images/"+filename, token)
-
-				#print(predictions)
-	
-
-
 
 
 	while True:
@@ -245,12 +215,6 @@ def tensorThread(something):
 			childChannel.start_consuming()
 			continue
 		processTask(result)
-
-#	childChannel = mainConnection.channel()
-#	childChannel.queue.declare("tf-task", arguments={'x-message-ttl':1000})
-#	childChannel.basic.consume(processTask, "tf-task", no_ack=False)
-#	childChannel.basic.qos( 1 , global_ = True )
-#	childChannel.start_consuming()
 
 while True:
 	try:
@@ -270,21 +234,7 @@ def processMessage(message):
 	#print(message.body)
 	tensorThread(message.body) ## 
 
-#p = Process(target=tensorThread, args=(None,))
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
-p = threading.Thread(target=tensorThread, args=(None,))
-p.start()
+
 p = threading.Thread(target=tensorThread, args=(None,))
 p.start()
 p = threading.Thread(target=tensorThread, args=(None,))
