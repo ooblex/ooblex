@@ -115,6 +115,6 @@ mq = threading.Thread(target=checkMessages)
 mq.start()
 
 print("Main API server starting")
-server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/api.ooblex.com/fullchain.pem", "/etc/letsencrypt/live/api.ooblex.com/privkey.pem", version=ssl.PROTOCOL_TLSv1)
+server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/"+config.DOMAIN['domain']+"/fullchain.pem", "/etc/letsencrypt/live/"+config.DOMAIN['domain']+"/privkey.pem", version=ssl.PROTOCOL_TLSv1)
 server.serveforever()
 print("API.py STOPPED!!!!!!!!")
