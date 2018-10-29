@@ -17,6 +17,7 @@ import logging
 import datetime
 import socket
 from concurrent.futures._base import TimeoutError
+import config
 #logging.basicConfig(level=logging.DEBUG)
 
 global peers, sessions, rooms, KEEPALIVE_TIMEOUT, SERVER_ADDR, queue, ices, plugins
@@ -868,8 +869,8 @@ print("loading websockets")
 
 ####
 
-chain_pem = '/etc/letsencrypt/live/api.ooblex.com/fullchain.pem'
-key_pem = '/etc/letsencrypt/live/api.ooblex.com/privkey.pem'
+chain_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/fullchain.pem'
+key_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/privkey.pem'
 
 sslctx = ssl.create_default_context()
 try:
