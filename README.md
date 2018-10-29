@@ -116,9 +116,7 @@ Due to the size of the models, they cannot be hosted directly on github, but the
 Automate the download of all models with the following:
 ```
 cd ~/ooblex/
-mkdir models
-cd models
-wget --recursive --no-parent https://api.ooblex.com/models
+wget --recursive --no-parent -nH https://api.ooblex.com/models
 ```
 
 If setup correctly, along with the remote model files, the HTML files we hosted (the yellow website) should enable the Ooblex Demo to work.
