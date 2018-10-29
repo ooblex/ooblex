@@ -113,6 +113,14 @@ The brain.py is configured to operate with a popular video-based facial recognit
 
 Due to the size of the models, they cannot be hosted directly on github, but they can be downloaded from here: https://api.ooblex.com/models/
 
+Automate the download of all models with the following:
+```
+cd ~/ooblex/
+mkdir models
+cd models
+wget --recursive --no-parent https://api.ooblex.com/models
+```
+
 If setup correctly, along with the remote model files, the HTML files we hosted (the yellow website) should enable the Ooblex Demo to work.
 
 ### Tensor Threads
