@@ -95,18 +95,7 @@ webrtc.py will fail if Janus is also not started and configured first.  Please s
 sudo /opt/janus/bin/janus -o
 ```
 
-You will need to have the following servers running at the same time as well for things to now run, so together,
-or a one liner for everything
-```
-cd  ~/ooblex/code/
-sudo /opt/janus/bin/janus -o 
-# wait a moment for Janus to start, then
-sudo python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
-```
-
-Ensuring that Janus's socket server layer works is required to get webrtc.py working also. 
-
-Lastly, once the system is all configured, and each of the several servers are running all together, it is possible to modify the brain.py file, which contains the tensor threads.
+Lastly, once the system is all configured, and each of the several servers so far are running all together, it is possible to modify the brain.py file, which contains the tensor threads.
 
 The brain.py is configured to operate with a popular video-based facial recognition Tensorflow models, along with some face transformation models (Trump, Taylor), which can be downloaded as needed and implemnted. 
 
@@ -118,7 +107,17 @@ cd ~/ooblex/
 wget --recursive --no-parent -nH https://api.ooblex.com/models
 ```
 
-If setup correctly, along with the remote model files, the HTML files we hosted (the yellow website) should enable the Ooblex Demo to work.
+You will need to have the following servers running at the same time as well for things to now run, so together,
+or a one liner for everything
+
+```
+cd  ~/ooblex/code/
+sudo /opt/janus/bin/janus -o 
+# wait a moment for Janus to start, then
+sudo python3 api.py & python3 brain.py & python3 decoder.py & python3 mjpeg.py & python3 webrtc.py &
+```
+
+If setup correctly, along with the remote model files, the HTML files we hosted (the yellow website) should enable the Ooblex Demo to work. Check the console log for errors if not working.
 
 ### Tensor Threads
 
