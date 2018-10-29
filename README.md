@@ -72,7 +72,7 @@ A one-liner to do this all possibly is this is:
 
 ```
 sudo find ~/ooblex/html -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
-sudo cp ~/ooblex/html /var/www/html
+sudo cp ~/ooblex/html/* /var/www/html -r
 ```
 
 At this point, going to your domain in your browser should show a yellow website. 
