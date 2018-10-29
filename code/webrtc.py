@@ -869,8 +869,8 @@ print("loading websockets")
 
 ####
 
-chain_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/fullchain.pem'
-key_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/privkey.pem'
+chain_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/fullchain.pem"
+key_pem = "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/privkey.pem"
 
 sslctx = ssl.create_default_context()
 try:
