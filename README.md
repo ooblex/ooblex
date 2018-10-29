@@ -64,14 +64,17 @@ python3 api.py
 ```
 Running the api.py file with Python should now start the main API server, however there are several other services that we will need to run.  You can stop this server for now, or push it to the background ie) control-Z & bg
 
-Next, lets copy the files in the HTML folder to your /var/www/html folder.
+Next, lets configure and copy the files in the HTML folder to your /var/www/html folder.
 
-``` 
+You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
+You will need to update the domain names from api.ooblex.com to whatever your domain is. 
+A one-liner to do this all possibly is this is:
+
+```
+sudo find ~/ooblex/html -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
 sudo cp ~/ooblex/html /var/www/html
 ```
 
-You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
-You will need to update the domain names from api.ooblex.com to whatever your domain is.
 At this point, going to your domain in your browser should show a yellow website. 
 
 Next, in ~/ooblex/code, we can try running our next service:
