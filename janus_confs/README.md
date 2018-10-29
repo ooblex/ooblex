@@ -22,7 +22,7 @@ janus.transport.websockets.cfg:38:cert_key = /etc/letsencrypt/live/api.ooblex.co
 
 If feeling aggressive, you can try a one liner to do this:
 ```
-find /opt/janus/etc/janus -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
+sudo find /opt/janus/etc/janus -type f -exec sed -i 's/api.ooblex.com/YOU-DOMAIN-HERE/g' {} \;
 ```
 
 Once configured, you can start janus with the following:
