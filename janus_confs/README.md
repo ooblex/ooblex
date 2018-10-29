@@ -5,7 +5,7 @@ cd ~/ooblex/janus_confs
 sudo cp * /opt/janus/etc/janus
 ```
 
-You will also need to modify the AMPQ / RabbitMQ configuration settings to point to the correct address.
+You will also need to modify the AMPQ / RabbitMQ configuration settings to point to the correct address. The config.py file settings are not compatible with Janus' config file, so you will have to update them manually.
 
 You will also need to point the config files to the correct SSL certificate; we generated this SSL certificate with the CERTBOT step earlier in the Ooblex install process.
 
