@@ -91,7 +91,7 @@ def sendClient(data):
 
 while True:
 	try:
-		mainConnection = UriConnection(config.RABBITMQ_CONFIQ['uri'])
+		mainConnection = UriConnection(config.RABBITMQ_CONFIG['uri'])
 		break
 	except:
 		continue
