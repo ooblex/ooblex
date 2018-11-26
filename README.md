@@ -26,7 +26,7 @@ Otherwise, start by entering the following commands, line by line, into the Ubun
 cd ~
 sudo apt-get update
 sudo apt-get install git
-git clone https://github.com/ooblex-ai/ooblex/
+git clone https://github.com/ooblex/ooblex/
 
 cd ooblex
 sudo chmod +x *.sh
