@@ -16,7 +16,7 @@ It is also recommended that all ports be made available and open to the server, 
 
 ## Installing onto Ubuntu 18.04
 
-We're are assuming a working and fresh deployment of a Ubuntu server, logged in as the root user in this example.
+We assuming a working and fresh deployment of a Ubuntu server, logged in as the root user in this example.
 
 If a GRUB error occurs during installation, you may need to load the maintainer's default. Please see: https://askubuntu.com/questions/1040974/ubuntu-server-18-04-apt-get-fails
 
