@@ -53,6 +53,7 @@ sudo apt-get install -y --no-install-recommends \
 	libjansson-dev \
 	libmicrohttpd-dev \
 	libnice-dev \
+	libconfig-dev \
 	libogg-dev \
 	libopus-dev \
 	libsofia-sip-ua-dev \
