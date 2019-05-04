@@ -47,6 +47,8 @@ sudo ./install_redis.sh
 ```
 The dependencies for Ooblex are largely now installed as we have now installed several core components. You will still need to deploy a REDIS and RabbitMQ server of your own though. If you are deploying to the cloud, your cloud provider may offer these as hosted services. 
 
+[Update: You can update the REDIS and AMQP (RabbitMQ) URI and Login information in the config.py file. Setting up RabbitMQ may require creating the channel Queues, such as "broadcast-all". The demo servers I had running previously are no longer up -- so the demo is not fully complete anymore and will require a bit more setup to get going.  I will address this when I have time.]
+
 We can enter the code directory now and configure some final settings.
 
 Edit the config.py file so that it uses 'your' REDIS and RabbitMQ uri is used. Also, you will need enter the domain name used when configuring the SSL certificate earlier.
