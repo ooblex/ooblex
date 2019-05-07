@@ -1,7 +1,9 @@
-
-apt-get install redis -y && \
-apt-get install redis-tools -y && \
-pip3 install redis 
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install redis -y && \
+sudo systemctl enable redis-server.service
+sudo apt-get install redis-tools -y && \
+sudo pip3 install redis 
 redis-cli -h localhost
 
 
