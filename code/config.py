@@ -7,7 +7,7 @@ RABBITMQ_CONFIG = {
 }
 
 DOMAIN_CONFIG = {
-    'domain' : "localhost"
+    'domain' : "api.ooblex.com"
 }
 
 
