@@ -3,7 +3,7 @@ REDIS_CONFIG = {
 }
 
 RABBITMQ_CONFIG = {
-    'uri' : 'amqp://localhost/'
+    'uri' : 'amqp://guest:guest@localhost:15672/'
 }
 
 DOMAIN_CONFIG = {
