@@ -42,7 +42,7 @@ decoder_A_swift.load_weights( "models/decoder256_A_TAYLOR.h5" )
 
 graph = tf.get_default_graph()
 
-r = redis.Redis.from_url(config.RABBITMQ_CONFIG['uri'])
+r = redis.Redis.from_url(config.REDIS_CONFIG['uri'])
 #logging.basicConfig(level=logging.DEBUG)
 def tensorThread(something):
 
