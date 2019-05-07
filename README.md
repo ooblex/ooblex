@@ -41,17 +41,18 @@ During the NGINX install, it will request information about a domain name to gen
 ```
 sudo ./install_tensorflow.sh
 sudo ./install_gstreamer.sh
+sudo ./install_rabbitmq.sh
 sudo ./install_janus.sh
 sudo ./install_webrtc.sh
 sudo ./install_redis.sh
 ```
-The dependencies for Ooblex are largely now installed as we have now installed several core components. You will still need to deploy a REDIS and RabbitMQ server of your own though. If you are deploying to the cloud, your cloud provider may offer these as hosted services. 
-
-[Update: You can update the REDIS and AMQP (RabbitMQ) URI and Login information in the config.py file. Setting up RabbitMQ may require creating the channel Queues, such as "broadcast-all". The demo servers I had running previously are no longer up -- so the demo is not fully complete anymore and will require a bit more setup to get going.  I will address this when I have time.]
+The dependencies for Ooblex are largely now installed as we have now installed several core components. If you are deploying to the cloud, your cloud provider may offer some of these tools as hosted services, which would be useful for large managed clustered deployments.
 
 We can enter the code directory now and configure some final settings.
 
 Edit the config.py file so that it uses 'your' REDIS and RabbitMQ uri is used. Also, you will need enter the domain name used when configuring the SSL certificate earlier.
+
+[recent note: The REDIS and RABBITMQ settings in the config.py are setup for localhost access currently, which may not work for production purposes. You can access the rabbitMQ admin dashboard via http://localhost:15672 with user/password guest/guest as a side note, to monitor/configure/add any missing data queues (ie, "broadcast-all").  You can also configure the domain to be localhost, but you'll need to disable SSL in a few places to get that working, and it will then only run locally, so not advised.]
 
 You can edit the config.py with the following command:
 ```
@@ -69,7 +70,7 @@ Running the api.py file with Python should now start the main API server, howeve
 Next, lets configure and copy the files in the HTML folder to your /var/www/html folder.
 
 You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder
-You will need to update the domain names from api.ooblex.com to whatever your domain is. 
+You will need to update the domain names from api.ooblex.com to whatever your domain is.
 A one-liner to do this all possibly is this is:
 
 ```
