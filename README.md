@@ -1,5 +1,5 @@
 # Ooblex
-A deployable and modular end-to-end platform for ultra-low-latency distributed processing, focusing mainly on the needs of live-media-streaming and ML inference. The primary code is written in python, which is easy to customize, making it ideal for data-scientists looking to deploy compute-heavy cloud-hosted machine learning inference for remote IoT video capture devices. (ie: Creating cheap yet smart security cameras). Ooblex focuses on being open-source, easy to use, and tries to offer the low-latency possible. (ie: Fast enough for real-time conversations or remote autonomous drone/robot control) .
+A deployable and modular end-to-end platform for ultra-low-latency distributed processing, focusing mainly on the needs of live-media-streaming and ML inference. The primary code is written in python, which is easy to customize, making it ideal for data-scientists looking to deploy compute-heavy cloud-hosted machine learning inference for remote IoT video capture devices. (ie: Creating cheap yet smart security cameras). Ooblex focuses on being open-source, easy to use, and tries to offer the lowest-latency possible. (ie: Fast enough for real-time conversations or remote autonomous drone/robot control) .
 
 ## Basic System Layout
 ![Flow](untitled_diagram.png)
