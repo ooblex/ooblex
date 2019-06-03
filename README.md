@@ -1,12 +1,12 @@
 # Ooblex
-Deployable system for real-time streaming distributed processing, targeting mainly live media and neural network inference.
+A deployable and modular end-to-end platform for ultra-low-latency distributed processing, focusing mainly on the needs of live-media-streaming and ML inference. The primary code is written in python, which is easy to customize, making it ideal for data-scientists looking to deploy compute-heavy cloud-hosted machine learning inference for remote IoT video capture devices. (ie: Creating cheap yet smart security cameras). Ooblex focuses on being open-source, easy to use, and tries to offer the low-latency possible. (ie: Fast enough for real-time conversations or remote autonomous drone/robot control) .
 
 ## Basic System Layout
 ![Flow](untitled_diagram.png)
 
 ## Server Requirements
 
-Ooblex is comprised of several services, including those for media and inference. While these services can be run independently, they can also be run together on a single server enviroment.
+Ooblex is comprised of several services, including those for media and inference. While these services can be run independently, they can also be run together on a single server enviroment. The fully-deployed default package includes a "DeepFake" face-swap demo using webcam video capture and tensorflow-based inference on that video.
 
 Ooblex was developed for use on a server with a solid internet connection, an Intel 28-core CPU, and 16-GB of RAM. System requirements will vary greatly depending on application, however our goal is to allow for deployment onto even edge devices, such as a Raspberry Pi 3 with an attached Intel Movidous AI accelerator.
 
