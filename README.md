@@ -171,3 +171,12 @@ We would like to develop a toolkit for embedded devices and mobile devices, to a
 
 Last but not least, increased readibility of the code, better seperation of the services, better virtual server support, and general code clean up is still all greatly needed.
 
+
+### Status of project
+
+The project is on indefinite hiatus for now; it was a fun proof of concept of what was possible.  Pictures from some years ago, presenting a demo to the IBM office, showcasing all the cool things that we were able to make and do with Ooblex, are below.  Thank you.
+
+![image](https://user-images.githubusercontent.com/2575698/230468519-3da3cfaf-1a1a-4bfa-94ce-d784ccfe0171.png)
+
+![image](https://user-images.githubusercontent.com/2575698/230468482-c3c4eb30-1597-4e9b-8b65-73a4838b41ac.png)
+
