@@ -1,28 +1,41 @@
-[update: this project may see some life again as the rise of streaming AI agents becomse a reality. watch and standy :)]
+# Ooblex 🚀
 
-# Ooblex
-A deployable and modular end-to-end platform for ultra-low-latency distributed processing, focusing mainly on the needs of live-media-streaming and ML inference. The primary code is written in python, which is easy to customize, making it ideal for data-scientists looking to deploy compute-heavy cloud-hosted machine learning inference for remote IoT video capture devices. (ie: Creating cheap yet smart security cameras). Ooblex focuses on being open-source, easy to use, and tries to offer the lowest-latency possible. (ie: Fast enough for real-time conversations or remote autonomous drone/robot control) .
+[![Share on HackerNews](https://img.shields.io/badge/Share_on-HackerNews-orange.svg)](https://news.ycombinator.com/submitlink?u=https://github.com/ooblex/ooblex)
+[![GitHub Stars](https://img.shields.io/github/stars/ooblex/ooblex?style=social)](https://github.com/ooblex/ooblex)
+[![Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fooblex%2Fooblex)](https://twitter.com/intent/tweet?text=Check%20out%20Ooblex%20-%20An%20open-source%20platform%20for%20real-time%20AI%20streaming%20and%20inference%20https://github.com/ooblex/ooblex)
 
-## Basic System Layout
+## 🎯 What is Ooblex?
+
+Ooblex is an open-source platform for building real-time AI streaming applications with ultra-low latency. Perfect for:
+- 🤖 Conversational AI agents with audio/video capabilities
+- 🎥 Smart security cameras and IoT devices
+- 🧠 Distributed ML inference at scale
+- 🌐 Edge-to-cloud AI processing
+- 🚁 Remote autonomous systems
+
+## ✨ Key Features
+
+- 🔄 WebRTC streaming with AV1 compression
+- 🎯 Ultra-low latency (<100ms) processing
+- 🔌 Plugin system for AI services (OpenAI, Google Gemini, etc.)
+- 🏗️ Modular architecture for distributed processing
+- 📱 Edge device support (Raspberry Pi, Intel NUC, etc.)
+- 🔧 Easy integration with Python ML frameworks
+- 🎛️ Flexible deployment options (edge, cloud, hybrid)
+
+## 🏗️ System Architecture
 ![Flow](untitled_diagram.png)
 
-## Server Requirements
+## 🚀 Quick Start
 
-Ooblex is comprised of several services, including those for media and inference. While these services can be run independently, they can also be run together on a single server enviroment. The fully-deployed default package includes a "DeepFake" face-swap demo using webcam video capture and tensorflow-based inference on that video.
+### Server Requirements
+- Solid internet connection
+- Domain name (for SSL/WebRTC)
+- Basic: 4+ CPU cores, 8GB+ RAM
+- ML Processing: 16GB+ RAM, GPU recommended
+- Edge Deployment: Works on Raspberry Pi 3+ w/AI accelerator
 
-Ooblex was developed for use on a server with a solid internet connection, an Intel 28-core CPU, and 16-GB of RAM. System requirements will vary greatly depending on application, however our goal is to allow for deployment onto even edge devices, such as a Raspberry Pi 3 with an attached Intel Movidous AI accelerator.
-
-A domain name is required for a full installation as SSL is often required for WebRTC browser support. Point a valid domain (or subdomain) at your public server's IP address. I might recommend Namecheap.com and searching for something for $1 that you can use if just testing. 
-
-It is also recommended that all ports be made available and open to the server, as port tunneling and WebRTC TURN servers are out of scope of the provided support here. 
-
-## Installing onto Ubuntu 18.04
-
-We assuming a working and fresh deployment of a Ubuntu server, logged in as the root user in this example.
-
-If a GRUB error occurs during installation, you may need to load the maintainer's default. Please see: https://askubuntu.com/questions/1040974/ubuntu-server-18-04-apt-get-fails
-
-Otherwise, start by entering the following commands, line by line, into the Ubuntu terminal.
+### Installation (Ubuntu 18.04+)
 
 ```
 cd ~
@@ -174,9 +187,46 @@ We would like to develop a toolkit for embedded devices and mobile devices, to a
 Last but not least, increased readibility of the code, better seperation of the services, better virtual server support, and general code clean up is still all greatly needed.
 
 
+## 🧩 Integration Examples
+
+### Conversational AI Agent
+```python
+from ooblex import TensorThread
+from openai import OpenAI
+
+class ConversationalAgent(TensorThread):
+    def process_frame(self, frame, audio):
+        # Process audio/video with OpenAI
+        response = self.openai.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[{"role": "user", "content": [
+                {"type": "image_url", "image_url": frame},
+                {"type": "text", "text": audio}
+            ]}]
+        )
+        return response.choices[0].message.content
+```
+
+## 🛠️ Use Cases
+
+1. **AI Assistant Platforms**
+   - Real-time video/audio processing
+   - Multi-modal conversation handling
+   - Distributed inference processing
+
+2. **Smart Security Systems**
+   - Low-latency video analysis
+   - Real-time threat detection
+   - Edge processing capabilities
+
+3. **Autonomous Systems**
+   - Drone/robot control
+   - Real-time decision making
+   - Remote operation capabilities
+     
 ### Status of project
 
-The project is on indefinite hiatus for now; it was a fun proof of concept of what was possible.  Pictures from some years ago, presenting a demo to the IBM office, showcasing all the cool things that we were able to make and do with Ooblex, are below.  Thank you.
+Pictures from some years ago, presenting a demo to the IBM office, showcasing all the cool things that we were able to make and do with Ooblex, are below.  Thank you.
 
 ![image](https://user-images.githubusercontent.com/2575698/230468519-3da3cfaf-1a1a-4bfa-94ce-d784ccfe0171.png)
 
