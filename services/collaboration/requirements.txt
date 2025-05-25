@@ -1,6 +1,6 @@
-websockets==11.0.3
-redis==5.0.1
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.6
+websockets==14.1
+redis==5.2.1
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic==2.10.4
+python-multipart==0.0.18

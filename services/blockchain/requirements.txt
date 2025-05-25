@@ -1,23 +1,23 @@
 # Blockchain and Web3
-web3==6.11.0
-eth-account==0.10.0
-eth-utils==2.3.1
+web3==7.6.1
+eth-account==0.14.0
+eth-utils==5.1.0
 
 # IPFS
-aiohttp==3.9.1
-aiofiles==23.2.1
+aiohttp==3.11.11
+aiofiles==24.1.0
 
 # Cryptography
-cryptography==41.0.7
+cryptography==44.0.0
 
 # Image processing for watermarking
-opencv-python==4.8.1.78
-Pillow==10.1.0
+opencv-python==4.10.0.84
+Pillow==11.0.0
 imagehash==4.3.1
 
 # Smart contract compilation (optional, for development)
-py-solc-x==2.0.2
+py-solc-x==2.0.3
 
 # Additional dependencies
-numpy==1.26.2
-pydantic==2.5.2
+numpy==1.26.4
+pydantic==2.10.4

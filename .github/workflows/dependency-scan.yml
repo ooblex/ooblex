@@ -1,0 +1,356 @@
+name: Dependency Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  python-dependencies:
+    name: Scan Python Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install pip-audit
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-audit
+    
+    - name: Scan Python dependencies
+      run: |
+        # Scan root requirements
+        pip-audit -r requirements.txt --desc
+        
+        # Scan service requirements
+        find services -name "requirements*.txt" -exec pip-audit -r {} --desc \;
+    
+    - name: Safety check
+      run: |
+        pip install safety
+        safety check -r requirements.txt --json > safety-results.json
+        
+        # Check all service requirements
+        find services -name "requirements*.txt" -exec safety check -r {} --json \; >> safety-results.json
+    
+    - name: Upload Safety results
+      uses: actions/upload-artifact@v4
+      with:
+        name: safety-results
+        path: safety-results.json
+    
+    - name: OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'ooblex'
+        path: '.'
+        format: 'ALL'
+        args: >
+          --enableRetired
+          --enableExperimental
+    
+    - name: Upload OWASP results
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-check-report
+        path: reports/
+
+  javascript-dependencies:
+    name: Scan JavaScript Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Run npm audit
+      run: |
+        # Find all package.json files and run npm audit
+        find . -name "package.json" -not -path "*/node_modules/*" -execdir sh -c '
+          echo "Scanning $(pwd)"
+          npm audit --json > npm-audit-$(basename $(pwd)).json || true
+        ' \;
+    
+    - name: Upload npm audit results
+      uses: actions/upload-artifact@v4
+      with:
+        name: npm-audit-results
+        path: '**/npm-audit-*.json'
+    
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --all-projects --severity-threshold=high
+    
+    - name: Upload Snyk results
+      uses: snyk/actions/monitor@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  container-scan:
+    name: Scan Container Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api, webrtc, ml-worker, decoder, mjpeg, media-server, streaming, blockchain]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: |
+        if [ -f "./services/${{ matrix.service }}/Dockerfile" ]; then
+          docker build -t ooblex-${{ matrix.service }}:scan ./services/${{ matrix.service }}
+        fi
+    
+    - name: Run Trivy container scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'ooblex-${{ matrix.service }}:scan'
+        format: 'sarif'
+        output: 'trivy-${{ matrix.service }}.sarif'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-${{ matrix.service }}.sarif'
+        category: 'container-${{ matrix.service }}'
+    
+    - name: Run Grype scan
+      uses: anchore/scan-action@v3
+      with:
+        image: 'ooblex-${{ matrix.service }}:scan'
+        fail-build: false
+        severity-cutoff: high
+    
+    - name: Upload Grype results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
+        category: 'grype-${{ matrix.service }}'
+
+  android-dependencies:
+    name: Scan Android Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Run dependency check
+      run: |
+        cd mobile-sdk/android
+        ./gradlew dependencyCheckAnalyze || true
+    
+    - name: Upload dependency check results
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-dependency-check
+        path: mobile-sdk/android/build/reports/
+
+  flutter-dependencies:
+    name: Scan Flutter Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+    
+    - name: Get dependencies
+      run: |
+        cd mobile-sdk/flutter
+        flutter pub get
+    
+    - name: Run dependency audit
+      run: |
+        cd mobile-sdk/flutter
+        flutter pub outdated --json > flutter-outdated.json
+    
+    - name: Upload Flutter dependency results
+      uses: actions/upload-artifact@v4
+      with:
+        name: flutter-dependencies
+        path: mobile-sdk/flutter/flutter-outdated.json
+
+  create-issues:
+    name: Create Security Issues
+    runs-on: ubuntu-latest
+    needs: [python-dependencies, javascript-dependencies, container-scan]
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+    
+    - name: Process and create issues
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Process safety results
+          if (fs.existsSync('safety-results/safety-results.json')) {
+            const safetyResults = JSON.parse(fs.readFileSync('safety-results/safety-results.json', 'utf8'));
+            
+            for (const vuln of safetyResults) {
+              if (vuln.severity === 'high' || vuln.severity === 'critical') {
+                const issueTitle = `[Security] ${vuln.package} - ${vuln.vulnerability}`;
+                const issueBody = `
+                  ## Vulnerability Details
+                  - **Package**: ${vuln.package}
+                  - **Severity**: ${vuln.severity}
+                  - **Description**: ${vuln.description}
+                  - **Affected Version**: ${vuln.installed_version}
+                  - **Fixed Version**: ${vuln.fixed_version}
+                  
+                  ## Action Required
+                  Update ${vuln.package} to version ${vuln.fixed_version} or later.
+                  
+                  ---
+                  *This issue was automatically created by the dependency security scan workflow.*
+                `;
+                
+                // Check if issue already exists
+                const {data: issues} = await github.rest.issues.listForRepo({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  labels: ['security', 'dependencies'],
+                  state: 'open'
+                });
+                
+                const existingIssue = issues.find(issue => issue.title === issueTitle);
+                
+                if (!existingIssue) {
+                  await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issueTitle,
+                    body: issueBody,
+                    labels: ['security', 'dependencies', vuln.severity]
+                  });
+                }
+              }
+            }
+          }
+
+  dependabot-config:
+    name: Update Dependabot Configuration
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create/Update Dependabot config
+      run: |
+        mkdir -p .github
+        cat > .github/dependabot.yml << 'EOF'
+        version: 2
+        updates:
+          # Python dependencies
+          - package-ecosystem: "pip"
+            directory: "/"
+            schedule:
+              interval: "daily"
+              time: "04:00"
+            open-pull-requests-limit: 10
+            labels:
+              - "dependencies"
+              - "python"
+            reviewers:
+              - "@ooblex/security-team"
+            commit-message:
+              prefix: "chore"
+              include: "scope"
+          
+          # Python service dependencies
+          - package-ecosystem: "pip"
+            directory: "/services/api"
+            schedule:
+              interval: "daily"
+            labels:
+              - "dependencies"
+              - "python"
+              - "api"
+          
+          - package-ecosystem: "pip"
+            directory: "/services/ml-worker"
+            schedule:
+              interval: "daily"
+            labels:
+              - "dependencies"
+              - "python"
+              - "ml"
+          
+          # JavaScript dependencies
+          - package-ecosystem: "npm"
+            directory: "/mobile-sdk/react-native"
+            schedule:
+              interval: "daily"
+            labels:
+              - "dependencies"
+              - "javascript"
+              - "react-native"
+          
+          - package-ecosystem: "npm"
+            directory: "/services/blockchain/smart_contracts"
+            schedule:
+              interval: "daily"
+            labels:
+              - "dependencies"
+              - "javascript"
+              - "blockchain"
+          
+          # Docker dependencies
+          - package-ecosystem: "docker"
+            directory: "/services/api"
+            schedule:
+              interval: "weekly"
+            labels:
+              - "dependencies"
+              - "docker"
+          
+          # GitHub Actions
+          - package-ecosystem: "github-actions"
+            directory: "/"
+            schedule:
+              interval: "weekly"
+            labels:
+              - "dependencies"
+              - "github-actions"
+        EOF
+    
+    - name: Commit Dependabot config
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .github/dependabot.yml
+        git diff --quiet && git diff --staged --quiet || git commit -m "chore: add Dependabot configuration for automated dependency updates"
+        git push

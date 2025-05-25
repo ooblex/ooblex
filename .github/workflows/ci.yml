@@ -130,6 +130,28 @@ jobs:
       with:
         name: bandit-results
         path: bandit-results.json
+    
+    - name: Run dependency security scan
+      run: |
+        # Install security scanners
+        pip install pip-audit safety
+        
+        # Run pip-audit
+        pip-audit -r requirements.txt --desc --format json > pip-audit-results.json || true
+        
+        # Run safety check
+        safety check -r requirements.txt --json > safety-results.json || true
+    
+    - name: Check for critical vulnerabilities
+      run: |
+        # Check pip-audit results
+        if [ -f pip-audit-results.json ]; then
+          critical_count=$(jq '[.vulnerabilities[] | select(.fix_versions != null)] | length' pip-audit-results.json)
+          if [ "$critical_count" -gt 0 ]; then
+            echo "::warning::Found $critical_count vulnerabilities with available fixes"
+            jq '.vulnerabilities[] | select(.fix_versions != null) | "Package: \(.name) - \(.description)"' pip-audit-results.json
+          fi
+        fi
 
   build:
     name: Build Docker Images
