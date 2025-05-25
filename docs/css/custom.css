@@ -17,7 +17,10 @@
   display: none;
 }
 #fun {
-  display: none; /* Hide decorative element that causes layout issues */
+  position: fixed;
+  width: 90%;
+  top: 20px;
+  left: 50px;
 }
 /* dropdown
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -30,18 +33,16 @@
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #ffffff;
+    background-color: #f9f9f9;
     text-decoration: none;
     text-decoration-line: none;
     min-width: 175px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     padding: 14px 22px;
-    z-index: 1000;
+    z-index: 1;
     color: #111; 
-    font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-weight: 400;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
+    font-family: "Work", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 .dropdown-content:hover {
   color: #000;
@@ -62,7 +63,7 @@
 @media (max-width: 549px) {
 .parallax { 
     height: 350px; 
-    background-attachment: scroll; /* Fixed backgrounds cause performance issues */
+    background-attachment: fixed;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -93,7 +94,7 @@
 @media (min-width: 550px) {
 .parallax1 { 
     height: 350px; 
-    background-attachment: scroll;
+    background-attachment: fixed;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -216,17 +217,11 @@
 }
 
 .nav {
-  height: 60px;
+  height: 50px;
   width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  margin-top: 10px;
+  position: absolute;
+  top: 0px;
 }
 
 .nav > .nav-header {
@@ -252,19 +247,17 @@
 
 .nav > .nav-links > a {
   display: inline-block;
-  padding: 20px;
+  padding: 13px 10px 13px 10px;
   text-decoration: none;
-  font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 600;
+  font-family: "Work", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 800;
   font-size: 14px;
-  color: #333;
-  opacity: 0.8;
-  transition: all 0.3s ease;
+  padding: 30px;
+  opacity: .5;
 }
 
 .nav > .nav-links > a:hover {
   opacity: 1;
-  color: #007EFC;
 }
 
 .nav > #nav-check {
@@ -297,14 +290,13 @@
     position: absolute;
     display: block;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.98);
+    background-color: #BAC5CE;
     text-align: center;
     height: 0px;
     transition: all 0.3s ease-in;
     overflow-y: hidden;
-    top: 60px;
+    top: 50px;
     left: 0px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
   .nav > .nav-links > a {
     display: block;
@@ -314,8 +306,7 @@
     height: 0px;
   }
   .nav > #nav-check:checked + .nav-links {
-    height: auto;
-    padding: 20px 0;
+    height: 160px;
   }
 }
 
@@ -330,7 +321,6 @@
 .section {
   padding: 8rem 0 7rem;
   text-align: center;
-  margin-top: 60px; /* Account for fixed nav */
 }
 
 .section5 {
@@ -439,9 +429,8 @@
 }
 
 .footer {
-  background-color: #654DEB;
+  background-color: #F44564;
   color: #ffffff;
-  padding: 4rem 0;
 }
 .footer.button {
   margin-left: 10px;
@@ -559,22 +548,17 @@ input[type="button"].button-primary:focus {
 .logo {
   max-width: 125px;
   margin-left: 40px;
-  margin-top: 10px;
+  margin-top: 15px;
   position: absolute;
-  height: 40px;
-  object-fit: contain;
 }
 }
 
 @media (max-width: 599px) {
   .logo {
-   max-width: 100px;
-  margin-top: 10px;
-  margin-left: 50%;
-  transform: translateX(-50%);
+   max-width: 125px;
+  margin-top: 8px;
+  margin-left: 35%;
   position: absolute;
-  height: 40px;
-  object-fit: contain;
 }
 }
 
@@ -755,94 +739,5 @@ input[type="button"].button-primary:focus {
     margin-top: 50px;
     max-height: 410px;
     width: 100%;
-  }
-}
-
-/* Additional Modern Styles */
-body {
-  padding-top: 60px; /* Account for fixed nav */
-}
-
-/* Improve image styling */
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Better code block styling */
-.container code {
-  display: block;
-  background-color: #1e1e1e;
-  color: #d4d4d4;
-  padding: 1.5rem;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* Inline code styling */
-h6 code, p code {
-  display: inline;
-  background-color: rgba(0, 0, 0, 0.1);
-  color: inherit;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  font-size: 0.9em;
-}
-
-/* Fix section spacing issues */
-.section1, .section2, .section3, .section4, .section7 {
-  margin-top: 0;
-}
-
-/* Better button styling */
-.button {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  padding: 0 24px;
-  transition: all 0.3s ease;
-}
-
-.button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Fix navigation active states */
-.nav-links a[style*="cursor: default"] {
-  color: #007EFC !important;
-  font-weight: 700;
-}
-
-/* Improve readability */
-p, h6 {
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Fix white text on colored backgrounds */
-.section2 h3 style,
-.section3 h3 style,
-.section4 h3 style,
-.section7 h3 style {
-  color: #ffffff !important;
-}
-
-/* Responsive improvements */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 15px;
-  }
-  
-  h3.hero-heading {
-    font-size: 2rem;
-  }
-  
-  .section {
-    padding: 4rem 0;
   }
 }
