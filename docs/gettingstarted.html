@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8">
+  <title>Ooblex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet" type='text/css'>
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+$(document).ready(function(){
+  // Add smooth scrolling to all links
+  $("a").on('click', function(event) {
+
+    // Make sure this.hash has a value before overriding default behavior
+    if (this.hash !== "") {
+      // Prevent default anchor click behavior
+      event.preventDefault();
+
+      // Store hash
+      var hash = this.hash;
+
+      // Using jQuery's animate() method to add smooth page scroll
+      // The optional number (800) specifies the number of milliseconds it takes to scroll to the specified area
+      $('html, body').animate({
+        scrollTop: $(hash).offset().top
+      }, 800, function(){
+   
+        // Add hash (#) to URL when done scrolling (default click behavior)
+        window.location.hash = hash;
+      });
+    } // End if
+  });
+});
+</script>
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+  <!-- Nav
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+
+</head>
+<body>
+
+<img id="fun" src="images/fun2.png">
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div id="static">
+  <div class="section">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <img class="lens" src="images/lens1.png">
+          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;">Getting started with Ooblex. <style type="text/css" style="font-weight: 400; display: initial;">An introduction to using the container for AI.</style></h3><h6>Ooblex is prebuilt with a working application, open sourced for you to run, configure, and commit.</h6>
+          <a class="ai button button-primary" style="
+    background-color: #164BC9;
+    border-color: #164BC9;" href="https://github.com/ooblex/ooblex">View on Github</a>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+  <div class="parallax7" style="
+    background-color: #164BC9;
+"></div>
+  <div class="section4">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h3><style type="text/css" style="font-weight: 400; display: initial; color: #ffffff;"> Introduction to the Ooblex container
+</style></h3><h6 style="color: #ffffff;">As a container, Ooblex Ooblex is comprised of several services, including those for media and inference. 
+While these services can be run independently, they can also be run together on a single server enviroment.
+<br>
+<br>
+Ooblex was developed for use on a server with a solid internet connection, an Intel 28-core CPU, and 16-GB of RAM.
+<br>
+<br>
+A domain name is required for a full installation as SSL is often required for WebRTC browser support. 
+Point a valid domain (or subdomain) at your public server’s IP address.
+<br>
+<br>
+It is also recommended that all ports be made available and open to the server, 
+as port tunneling and WebRTC TURN servers are not currently supported.</h6>
+        </div>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <img class="lens3" src="images/ubuntu.png">
+          <h3><style type="text/css" style="font-weight: 400; display: initial;"> Installing on Ubuntu 18.04
+</style></h3><h6>We are assuming a working and fresh deployment of a Ubuntu server, logged in as the root user in this example. 
+Start by entering the following commands, line by line, into the Ubuntu terminal.</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+cd ~<br>
+sudo apt-get update<br>
+sudo apt-get install git<br>
+git clone https://github.com/ooblex/ooblex/<br>
+<br>
+cd ooblex<br>
+sudo chmod +x *.sh<br>
+<br>
+sudo ./install_opencv.sh
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section6">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h6>We should now be building OpenCV, which can take 30 minutes to a few hours to install.</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+sudo ./install_nginx.sh
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section6">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h6>During the NGINX install, it will request information about a domain name to generate a free SSL certificate. 
+As mentioned in the requirements above, you will need to have a domain name pointing at your server for this to work. 
+Also, if asked, redirecting from HTTP to HTTPS is preferred.</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+sudo ./install_tensorflow.sh<br>
+sudo ./install_gstreamer.sh<br>
+sudo ./install_janus.sh<br>
+sudo ./install_webrtc.sh<br>
+sudo ./install_redis.sh<br>
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section6">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h6>The dependencies for Ooblex are largely now installed as we have now installed several core components. 
+You will still need to deploy a REDIS and RabbitMQ server of your own though.
+If you are deploying to the cloud, your cloud provider may offer these as hosted services.
+<br>
+<br>
+Edit the config.py file so that it uses ‘your’ REDIS and RabbitMQ uri is used. 
+Also, you will need enter the domain name used when configuring the SSL certificate earlier.
+<br>
+<br>
+You can edit the config.py with the following command:</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+sudo nano config.py
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section6">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h6>Next, lets configure and copy the files in the HTML folder to your /var/www/html folder.
+You will need to MODIFY both the index.html file AND the Ooblex.v0.js file contained within the JS folder. 
+You will need to update the domain names from api.ooblex.com to whatever your domain is.
+<br>
+<br>
+You will also need to configure the following files:
+<br>
+<br>
+decoder.py : You will likely want to modify the file so that the REDIS and AMPQ connection strings point to your own servers, rather the Ooblex’s demo servers.
+<br>
+mjpeg.py : requires the SSL certificate location to be properly configured
+<br>
+<br>
+Next we need to configure Janus. Put these files in your JANUS CONFIG folder, and configure them accordingly.</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+cd ~/ooblex/janus_confs<br>
+sudo cp * /opt/janus/etc/janus
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div class="section6">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h6>You will also need to modify the AMPQ / RabbitMQ configuration settings to point to the correct address. 
+The config.py file settings are not compatible with Janus’ config file, so you will have to update them manually.
+<br>
+<br>
+You will also need to point the config files to the correct SSL certificate.
+<br>
+<br>
+The following files and lines need updating:</h6>
+          <br>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+  <div class="section5">
+    <div class="container" style="
+    background-color: #D4DBE0;
+    padding: 50px;
+">
+        <div class="row">
+          <div class="three column">
+          <code>
+janus.cfg:67:cert_pem = /etc/letsencrypt/live/api.ooblex.com/fullchain.pem<br>
+janus.cfg:68:cert_key = /etc/letsencrypt/live/api.ooblex.com/privkey.pem<br>
+janus.transport.http.cfg:64:cert_pem = /etc/letsencrypt/live/api.ooblex.com/fullchain.pem<br>
+janus.transport.http.cfg:65:cert_key = /etc/letsencrypt/live/api.ooblex.com/privkey.pem<br>
+janus.transport.websockets.cfg:37:cert_pem = /etc/letsencrypt/live/api.ooblex.com/fullchain.pem<br>
+janus.transport.websockets.cfg:38:cert_key = /etc/letsencrypt/live/api.ooblex.com/privkey.pem
+          </code>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div class="parallax7" style="
+    background-color: #FA954B;
+"></div>
+  <div class="section7">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <h3><style type="text/css" style="font-weight: 400; display: initial; color: #ffffff;"> Working with Tensor Threads
+</style></h3><h6 style="color: #ffffff;">The tensorthread_shell.py is a template for your own AI scripts: it is what brain.py uses for its own demo code. It is quite accessible if you're familiar with Python and Tensorflow already. Working with IBM's Watson Studio, exporting a Python-based version of a trained model can be directly imported into this tensorthread_shell.py file for rapid deployment of a high performing, low-latency, serialized model-- virtually no coding needed.
+<br>
+<br>
+brain.py, or tensorthread_shell.py for that matter, can be distributed and run across many servers. Just repeat the above setup steps but instead just run brain.py (or tensorthread_shell.py), without any of the other services loaded on that new server. The Tensor Threads will work on AI tasks from the main REDIS/RabbitMQ queue and accelerate the overall system's processing performance! It can easily also be run on Windows or deployed to virtually any system that supports Python and Tensorflow (or TensorRT).
+</h6>
+        </div>
+        </div>
+      </div>
+    </div>
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+          <div class="three column">
+          <img class="lens3" src="images/model.png">
+          <h3><style type="text/css" style="font-weight: 400; display: initial;"> Download the hosted Tensorflow models.
+</style></h3><h6>Linked are pre-trained models that are too large to include on Github, but that are required for the included demo functionality of Ooblex. Included is a facial detection model and two face-swaping transformative models; they are ready to be downloaded and deployed to Ooblex's models folder.</h6>
+          <br>
+          <a class="ai button button-primary" style="
+    background-color: #F07A7D;
+    border-color: #F07A7D;" href="https://api.ooblex.com/models/">Download</a>
+          </div>
+          <br>
+        </div>
+    </div>
+  </div>
+
+<div id="footer">
+  <div class="section footer" style="
+    background-color: #8504BE;
+">
+    <div class="container">
+      <h3 class="hero-heading" style="margin-bottom: 0;">Opening the door to the world of transformative AI.<style type="text/css" style="font-weight: 400; display: initial;"> Built around Python.</style></h3><h6>Ooblex is designed to be open and accessible to all.</h6>
+     <!--<div class="eight columns"><a class="footer button button-primary" href="https://www.ibm.com/cloud/">IBM Cloud</a><a class="footer button button-primary" href="mailto:contact@ooblex.com">Email Us</a><a class="footer button button-primary" target="_blank" href="https://www.linkedin.com/company/ooblex/">LinkedIn</a></div>
+    </div>-->
+    <br>
+    <br>
+    <p style="
+    color: #ffffff; margin-bottom: 0;">&copy;&nbsp;2018 Ooblex</p>
+  </div>
+</div>
+
+<div class="nav">
+
+  <img id="static2" class="logo" src="images/logo.png">
+
+  <div class="nav-header">
+    <div class="nav-title"></div>
+  </div>
+
+  <div class="nav-btn">
+    <label id="static2" for="nav-check">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <label id="other" for="nav-check">
+      <span style="border-top: 2px solid #ffffff;"></span>
+      <span style="border-top: 2px solid #ffffff;"></span>
+      <span style="border-top: 2px solid #ffffff;"></span>
+    </label>
+    <label id="other1" for="nav-check">
+      <span style="border-top: 2px solid #ffffff;"></span>
+      <span style="border-top: 2px solid #ffffff;"></span>
+      <span style="border-top: 2px solid #ffffff;"></span>
+    </label>
+  </div>
+
+  <input type="checkbox" id="nav-check">
+  <div class="nav-links">
+    <a id="static2" href="index.html" class="ucaptcha">Home</a>
+    <a id="static2" style="cursor: default; opacity: 1;" class="ai">Getting Started</a>
+  </div>
+
+</div>
+
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
