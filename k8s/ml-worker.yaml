@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-worker
+  namespace: ooblex
+  labels:
+    app: ml-worker
+    component: ml
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-worker
+      component: ml
+  template:
+    metadata:
+      labels:
+        app: ml-worker
+        component: ml
+    spec:
+      nodeSelector:
+        gpu: "true"  # Ensure deployment on GPU nodes
+      containers:
+      - name: ml-worker
+        image: ooblex/ml-worker:latest
+        imagePullPolicy: Always
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: NODE_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: LOG_LEVEL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: REDIS_URL
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: RABBITMQ_URL
+        - name: MODEL_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: MODEL_PATH
+        - name: MODEL_CACHE_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: MODEL_CACHE_SIZE
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        - name: TF_CPP_MIN_LOG_LEVEL
+          value: "2"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: models
+          mountPath: /models
+          readOnly: true
+        - name: cache
+          mountPath: /cache
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.exit(0)"
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import torch; import tensorflow as tf; sys.exit(0 if torch.cuda.is_available() else 1)"
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          periodSeconds: 15
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: models-pvc
+      - name: cache
+        emptyDir:
+          sizeLimit: 10Gi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ml-worker-hpa
+  namespace: ooblex
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ml-worker
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: models-pvc
+  namespace: ooblex
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd  # Adjust based on your cluster

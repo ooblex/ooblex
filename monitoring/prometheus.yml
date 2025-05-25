@@ -1,0 +1,201 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ooblex-prod'
+    replica: '$(POD_NAME)'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Kubernetes API server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+
+  # Kubernetes pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Ooblex API service
+  - job_name: 'ooblex-api'
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names: ['ooblex']
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: ooblex-api
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: metrics
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'api_.*'
+        action: keep
+
+  # Ooblex ML Workers
+  - job_name: 'ooblex-ml-worker'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ['ooblex']
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+        action: keep
+        regex: ml-worker
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: $1:9090
+        target_label: __address__
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'ml_.*|gpu_.*'
+        action: keep
+
+  # Redis exporter
+  - job_name: 'redis'
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names: ['ooblex']
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: '.*redis.*'
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: $1:9121
+        target_label: __address__
+
+  # RabbitMQ exporter
+  - job_name: 'rabbitmq'
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names: ['ooblex']
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: '.*rabbitmq.*'
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: $1:9419
+        target_label: __address__
+
+  # PostgreSQL exporter
+  - job_name: 'postgresql'
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names: ['ooblex']
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: '.*postgresql.*'
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: $1:9187
+        target_label: __address__
+
+  # Node exporter
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: node-exporter
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+
+  # NVIDIA GPU exporter
+  - job_name: 'nvidia-gpu'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: nvidia-gpu-exporter
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+
+  # Blackbox exporter for endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://api.ooblex.example.com/health
+          - https://webrtc.ooblex.example.com/health
+          - https://stream.ooblex.example.com/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

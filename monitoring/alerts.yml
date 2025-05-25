@@ -1,0 +1,225 @@
+groups:
+  - name: ooblex_api_alerts
+    interval: 30s
+    rules:
+      - alert: APIHighErrorRate
+        expr: |
+          (
+            sum(rate(api_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(api_requests_total[5m])) by (job)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is above 5% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: APIHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(api_request_duration_seconds_bucket[5m])) by (le, job)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile API latency is above 2 seconds (current value: {{ $value | humanizeDuration }})"
+
+      - alert: APIDown
+        expr: up{job="ooblex-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "API service is down"
+          description: "API service {{ $labels.instance }} has been down for more than 1 minute"
+
+  - name: ooblex_ml_alerts
+    interval: 30s
+    rules:
+      - alert: MLWorkerHighProcessingTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ml_task_processing_seconds_bucket[5m])) by (le, task_type)
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-worker
+        annotations:
+          summary: "High ML processing time"
+          description: "95th percentile processing time for {{ $labels.task_type }} is above 30 seconds (current value: {{ $value | humanizeDuration }})"
+
+      - alert: MLWorkerHighErrorRate
+        expr: |
+          (
+            sum(rate(ml_tasks_processed_total{status="error"}[5m])) by (task_type)
+            /
+            sum(rate(ml_tasks_processed_total[5m])) by (task_type)
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: ml-worker
+        annotations:
+          summary: "High ML task error rate"
+          description: "ML task error rate for {{ $labels.task_type }} is above 10% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: GPUMemoryHigh
+        expr: |
+          (gpu_memory_usage_bytes / (8 * 1024 * 1024 * 1024)) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-worker
+        annotations:
+          summary: "High GPU memory usage"
+          description: "GPU memory usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: NoMLWorkersAvailable
+        expr: |
+          sum(up{job="ooblex-ml-worker"}) == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ml-worker
+        annotations:
+          summary: "No ML workers available"
+          description: "All ML workers are down"
+
+  - name: ooblex_infrastructure_alerts
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} is down"
+
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: rabbitmq
+        annotations:
+          summary: "RabbitMQ is down"
+          description: "RabbitMQ instance {{ $labels.instance }} is down"
+
+      - alert: RabbitMQHighQueueDepth
+        expr: |
+          rabbitmq_queue_messages_ready > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: rabbitmq
+        annotations:
+          summary: "RabbitMQ queue backlog"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages waiting"
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL instance {{ $labels.instance }} is down"
+
+      - alert: PostgreSQLHighConnections
+        expr: |
+          (pg_stat_database_numbackends / pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "PostgreSQL connection usage is above 80% (current value: {{ $value | humanizePercentage }})"
+
+  - name: ooblex_kubernetes_alerts
+    interval: 30s
+    rules:
+      - alert: PodCrashLooping
+        expr: |
+          rate(kube_pod_container_status_restarts_total{namespace="ooblex"}[5m]) * 60 * 5 > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+
+      - alert: PodNotReady
+        expr: |
+          kube_pod_status_ready{namespace="ooblex", condition="false"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been not ready for 5 minutes"
+
+      - alert: HighCPUUsage
+        expr: |
+          (
+            sum(rate(container_cpu_usage_seconds_total{namespace="ooblex"}[5m])) by (pod)
+            / 
+            sum(container_spec_cpu_quota{namespace="ooblex"}/container_spec_cpu_period{namespace="ooblex"}) by (pod)
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "Pod {{ $labels.pod }} CPU usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            sum(container_memory_working_set_bytes{namespace="ooblex"}) by (pod)
+            /
+            sum(container_spec_memory_limit_bytes{namespace="ooblex"}) by (pod)
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Pod {{ $labels.pod }} memory usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: PersistentVolumeSpaceLow
+        expr: |
+          (
+            kubelet_volume_stats_available_bytes{namespace="ooblex"}
+            /
+            kubelet_volume_stats_capacity_bytes{namespace="ooblex"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PVC space low"
+          description: "PVC {{ $labels.persistentvolumeclaim }} has less than 10% space available"

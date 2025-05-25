@@ -1,0 +1,15 @@
+[Unit]
+Description=Ooblex Collaboration Server
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=ooblex
+WorkingDirectory=/root/ooblex/services/collaboration
+Environment="PYTHONPATH=/root/ooblex"
+ExecStart=/usr/bin/python3 collaboration_server.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

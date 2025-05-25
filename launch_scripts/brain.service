@@ -1,10 +1,52 @@
 [Unit]
-Description=main api python wrapper
-After=multi-user.target
+Description=Ooblex ML Worker (Brain) Service
+Documentation=https://github.com/yourusername/ooblex
+After=network.target redis.service rabbitmq-server.service
+Requires=redis.service rabbitmq-server.service
 
 [Service]
-Type=idle
+Type=simple
+ExecStartPre=/bin/sh -c 'until nc -z localhost 5672; do sleep 1; done'
+ExecStartPre=/bin/sh -c 'until nc -z localhost 6379; do sleep 1; done'
+ExecStart=/opt/ooblex/venv/bin/python -m ml_worker
+WorkingDirectory=/opt/ooblex/services/ml-worker
+Restart=always
+RestartSec=10
+User=ooblex
+Group=ooblex
+Environment="PATH=/opt/ooblex/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/ooblex/services/ml-worker"
+Environment="CUDA_VISIBLE_DEVICES=0"
+Environment="TF_CPP_MIN_LOG_LEVEL=2"
+EnvironmentFile=/opt/ooblex/.env
 
-ExecStart=/usr/bin/python3 /root/ooblex/code/brain.py > /root/logs/brain.log 2>&1
+# Security hardening (less restrictive due to GPU access)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/ooblex/logs /opt/ooblex/data /opt/ooblex/models /tmp
+ProtectKernelTunables=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+# GPU access requires less restriction
+PrivateDevices=false
+DeviceAllow=/dev/nvidia* rwm
+DeviceAllow=/dev/nvidiactl rwm
+DeviceAllow=/dev/nvidia-uvm rwm
+DeviceAllow=/dev/nvidia-modeset rwm
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=8G
+CPUQuota=400%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ooblex-brain
+
 [Install]
 WantedBy=multi-user.target

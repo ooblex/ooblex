@@ -1,0 +1,195 @@
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  REGISTRY: registry.gitlab.com
+  IMAGE_NAME: $CI_PROJECT_PATH
+
+# Lint Stage
+lint:python:
+  stage: lint
+  image: python:3.11-slim
+  script:
+    - pip install flake8 black isort mypy
+    - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - black --check .
+    - isort --check-only .
+    - mypy . --ignore-missing-imports
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Test Stage
+test:unit:
+  stage: test
+  image: python:3.11
+  services:
+    - redis:7-alpine
+    - postgres:16-alpine
+  variables:
+    POSTGRES_USER: ooblex
+    POSTGRES_PASSWORD: test
+    POSTGRES_DB: ooblex_test
+    REDIS_URL: redis://redis:6379
+    DATABASE_URL: postgresql://ooblex:test@postgres:5432/ooblex_test
+  before_script:
+    - pip install -r requirements.txt
+    - pip install pytest pytest-asyncio pytest-cov
+  script:
+    - pytest tests/ -v --cov=ooblex --cov-report=xml --cov-report=html
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - htmlcov/
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Security Stage
+security:scan:
+  stage: security
+  image: aquasec/trivy:latest
+  script:
+    - trivy fs --exit-code 0 --no-progress --format template --template "@contrib/gitlab.tpl" -o gl-security-scanning-report.json .
+  artifacts:
+    reports:
+      container_scanning: gl-security-scanning-report.json
+  only:
+    - merge_requests
+    - main
+    - develop
+
+security:dependency:
+  stage: security
+  image: python:3.11-slim
+  script:
+    - pip install safety bandit
+    - safety check --json
+    - bandit -r . -f json -o bandit-report.json
+  artifacts:
+    paths:
+      - bandit-report.json
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Build Stage
+.build_template: &build_template
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - |
+      docker build \
+        --cache-from $CI_REGISTRY_IMAGE/$SERVICE:latest \
+        --tag $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHA \
+        --tag $CI_REGISTRY_IMAGE/$SERVICE:latest \
+        ./services/$SERVICE
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE:latest
+  only:
+    - main
+    - develop
+    - tags
+
+build:api:
+  <<: *build_template
+  variables:
+    SERVICE: api
+
+build:webrtc:
+  <<: *build_template
+  variables:
+    SERVICE: webrtc
+
+build:ml-worker:
+  <<: *build_template
+  variables:
+    SERVICE: ml-worker
+
+build:decoder:
+  <<: *build_template
+  variables:
+    SERVICE: decoder
+
+build:mjpeg:
+  <<: *build_template
+  variables:
+    SERVICE: mjpeg
+
+# Deploy Stage
+deploy:staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+    url: https://staging.ooblex.example.com
+  before_script:
+    - echo "$KUBE_CONFIG_STAGING" | base64 -d > /tmp/kubeconfig
+    - export KUBECONFIG=/tmp/kubeconfig
+  script:
+    - kubectl apply -f k8s/namespace.yaml
+    - kubectl apply -f k8s/configmap.yaml
+    - kubectl apply -f k8s/secret.yaml
+    - kubectl apply -f k8s/
+    - |
+      for service in api webrtc ml-worker decoder mjpeg; do
+        kubectl set image deployment/$service $service=$CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHA -n ooblex
+      done
+    - kubectl rollout status deployment -n ooblex --timeout=10m
+  only:
+    - develop
+
+deploy:production:
+  stage: deploy
+  image: alpine/helm:latest
+  environment:
+    name: production
+    url: https://ooblex.example.com
+  before_script:
+    - echo "$KUBE_CONFIG_PROD" | base64 -d > /tmp/kubeconfig
+    - export KUBECONFIG=/tmp/kubeconfig
+  script:
+    - |
+      helm upgrade --install ooblex ./charts/ooblex \
+        --namespace ooblex \
+        --create-namespace \
+        --set image.tag=$CI_COMMIT_TAG \
+        --values ./charts/ooblex/values.prod.yaml \
+        --wait \
+        --timeout 15m
+  only:
+    - tags
+  when: manual
+
+# Cleanup old images
+cleanup:registry:
+  stage: deploy
+  image: gitlab/gitlab-runner:latest
+  script:
+    - |
+      # Cleanup images older than 7 days
+      for service in api webrtc ml-worker decoder mjpeg; do
+        echo "Cleaning up old images for $service"
+        # GitLab API call to delete old images
+      done
+  only:
+    - schedules

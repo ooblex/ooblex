@@ -1,9 +1,52 @@
 [Unit]
-Description=motion jpeg server
-After=multi-user.target
+Description=Ooblex MJPEG Streaming Service
+Documentation=https://github.com/yourusername/ooblex
+After=network.target redis.service
+Requires=redis.service
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/python3 /root/ooblex/code/red.py > /root/logs/red.log 2>&1
+Type=simple
+ExecStartPre=/bin/sh -c 'until nc -z localhost 6379; do sleep 1; done'
+ExecStart=/opt/ooblex/venv/bin/python -m mjpeg_server
+WorkingDirectory=/opt/ooblex/services/mjpeg
+Restart=always
+RestartSec=10
+User=ooblex
+Group=ooblex
+Environment="PATH=/opt/ooblex/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/ooblex/services/mjpeg"
+EnvironmentFile=/opt/ooblex/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ooblex/logs /opt/ooblex/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateMounts=true
+PrivateDevices=true
+
+# Network access required
+PrivateNetwork=false
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=1G
+CPUQuota=100%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ooblex-mjpeg
+
 [Install]
 WantedBy=multi-user.target

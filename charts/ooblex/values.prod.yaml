@@ -1,0 +1,76 @@
+# Production values for ooblex
+# This overrides values in values.yaml for production deployments
+
+global:
+  domain: ooblex.yourdomain.com
+
+# Increase replicas for production
+api:
+  replicaCount: 5
+  autoscaling:
+    minReplicas: 5
+    maxReplicas: 20
+
+webrtc:
+  replicaCount: 5
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+mlWorker:
+  replicaCount: 4
+  autoscaling:
+    minReplicas: 4
+    maxReplicas: 16
+
+decoder:
+  replicaCount: 4
+
+mjpeg:
+  replicaCount: 4
+
+# Production database settings
+redis:
+  sentinel:
+    enabled: true
+  master:
+    persistence:
+      size: 50Gi
+
+postgresql:
+  primary:
+    persistence:
+      size: 100Gi
+  readReplicas:
+    enabled: true
+    replicaCount: 2
+
+rabbitmq:
+  clustering:
+    enabled: true
+  replicaCount: 3
+  persistence:
+    size: 50Gi
+
+# Enhanced monitoring for production
+prometheus:
+  server:
+    persistentVolume:
+      size: 100Gi
+  alertmanager:
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+
+grafana:
+  persistence:
+    size: 20Gi
+  replicas: 2
+
+# Enable backups in production
+backup:
+  enabled: true
+  s3:
+    bucket: ooblex-backups
+    region: us-east-1

@@ -1,0 +1,71 @@
+name: ooblex_sdk
+description: Real-time AI video processing SDK for Flutter applications
+version: 1.0.0
+homepage: https://github.com/ooblex/flutter-ooblex-sdk
+repository: https://github.com/ooblex/flutter-ooblex-sdk
+issue_tracker: https://github.com/ooblex/flutter-ooblex-sdk/issues
+documentation: https://docs.ooblex.com/flutter-sdk
+
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+  flutter: '>=2.5.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Platform interface
+  plugin_platform_interface: ^2.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.ooblex.sdk
+        pluginClass: OoblexSdkPlugin
+      ios:
+        pluginClass: OoblexSdkPlugin
+
+topics:
+  - ai
+  - video-processing
+  - webrtc
+  - face-detection
+  - real-time
+
+screenshots:
+  - description: 'Real-time face detection'
+    path: screenshots/face_detection.png
+  - description: 'Emotion recognition'
+    path: screenshots/emotion_recognition.png
+  - description: 'Virtual background'
+    path: screenshots/virtual_background.png
+
+platforms:
+  android:
+    dartPluginClass: OoblexSdkPlugin
+    package: com.ooblex.sdk
+    pluginClass: OoblexSdkPlugin
+  ios:
+    dartPluginClass: OoblexSdkPlugin
+    pluginClass: OoblexSdkPlugin
+    
+# Additional files to include
+# These would be created in a full implementation
+# android/
+#   src/main/kotlin/com/ooblex/sdk/OoblexSdkPlugin.kt
+#   build.gradle
+#   src/main/AndroidManifest.xml
+# ios/
+#   Classes/OoblexSdkPlugin.swift
+#   ooblex_sdk.podspec
+# example/
+#   lib/main.dart
+#   pubspec.yaml
+# test/
+#   ooblex_sdk_test.dart

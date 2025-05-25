@@ -1,9 +1,55 @@
 [Unit]
-Description=janus python wrapper
-After=multi-user.target
+Description=Ooblex Video Decoder Service
+Documentation=https://github.com/yourusername/ooblex
+After=network.target redis.service rabbitmq-server.service
+Requires=redis.service rabbitmq-server.service
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/python3 /root/ooblex/code/decoder.py > /root/logs/decoder.log 2>&1
+Type=simple
+ExecStartPre=/bin/sh -c 'until nc -z localhost 5672; do sleep 1; done'
+ExecStartPre=/bin/sh -c 'until nc -z localhost 6379; do sleep 1; done'
+ExecStart=/opt/ooblex/venv/bin/python -m decoder
+WorkingDirectory=/opt/ooblex/services/decoder
+Restart=always
+RestartSec=10
+User=ooblex
+Group=ooblex
+Environment="PATH=/opt/ooblex/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/ooblex/services/decoder"
+Environment="GST_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+EnvironmentFile=/opt/ooblex/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ooblex/logs /opt/ooblex/data /tmp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=false
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateMounts=true
+
+# GStreamer requires some device access
+PrivateDevices=false
+DevicePolicy=closed
+DeviceAllow=/dev/dri rw
+DeviceAllow=/dev/video* rw
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=2G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ooblex-decoder
+
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+  namespace: ooblex
+  labels:
+    app: rabbitmq
+    component: messaging
+spec:
+  ports:
+    - port: 5672
+      targetPort: 5672
+      protocol: TCP
+      name: amqp
+    - port: 15672
+      targetPort: 15672
+      protocol: TCP
+      name: management
+  selector:
+    app: rabbitmq
+    component: messaging
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: ooblex
+  labels:
+    app: rabbitmq
+    component: messaging
+spec:
+  serviceName: rabbitmq-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+      component: messaging
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+        component: messaging
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.12-management-alpine
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: ooblex-secrets
+              key: RABBITMQ_USER
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: ooblex-secrets
+              key: RABBITMQ_PASS
+        - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
+          value: "0.6"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - ping
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - ping
+          initialDelaySeconds: 20
+          timeoutSeconds: 10
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi

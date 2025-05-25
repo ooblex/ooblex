@@ -1,0 +1,124 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'maven-publish'
+}
+
+android {
+    compileSdk 33
+    
+    defaultConfig {
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0.0"
+        
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    
+    packagingOptions {
+        pickFirst 'META-INF/native-image/ios-x86_64/jnijavacpp/reflect-config.json'
+        pickFirst 'META-INF/native-image/ios-x86_64/jnijavacpp/jni-config.json'
+    }
+}
+
+dependencies {
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    
+    // AndroidX
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    
+    // CameraX
+    implementation "androidx.camera:camera-core:1.2.3"
+    implementation "androidx.camera:camera-camera2:1.2.3"
+    implementation "androidx.camera:camera-lifecycle:1.2.3"
+    
+    // WebRTC
+    implementation 'org.webrtc:google-webrtc:1.0.32006'
+    
+    // ML Kit
+    implementation 'com.google.mlkit:face-detection:16.1.5'
+    implementation 'com.google.mlkit:object-detection:17.0.1'
+    
+    // Network
+    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// Publishing configuration
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                
+                groupId = 'com.ooblex'
+                artifactId = 'ooblex-sdk'
+                version = '1.0.0'
+                
+                pom {
+                    name = 'Ooblex SDK'
+                    description = 'Real-time AI video processing SDK for Android'
+                    url = 'https://github.com/ooblex/ooblex-android-sdk'
+                    
+                    licenses {
+                        license {
+                            name = 'The MIT License'
+                            url = 'https://opensource.org/licenses/MIT'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'ooblex'
+                            name = 'Ooblex Team'
+                            email = 'support@ooblex.com'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:git://github.com/ooblex/ooblex-android-sdk.git'
+                        developerConnection = 'scm:git:ssh://github.com/ooblex/ooblex-android-sdk.git'
+                        url = 'https://github.com/ooblex/ooblex-android-sdk'
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/ooblex/ooblex-android-sdk")
+                credentials {
+                    username = System.getenv("GITHUB_USER") ?: project.findProperty("github.user")
+                    password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("github.token")
+                }
+            }
+        }
+    }
+}

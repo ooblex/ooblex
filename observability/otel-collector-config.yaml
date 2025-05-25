@@ -1,0 +1,121 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+        
+        - job_name: 'ooblex-services'
+          scrape_interval: 15s
+          static_configs:
+            - targets: 
+              - 'api:9090'
+              - 'ml-worker:9090'
+              - 'webrtc:9090'
+              - 'decoder:9090'
+              - 'mjpeg:9090'
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1024
+    spike_limit_mib: 256
+  
+  resource:
+    attributes:
+      - key: environment
+        value: production
+        action: upsert
+      - key: region
+        value: ${REGION:-us-east-1}
+        action: upsert
+  
+  attributes:
+    actions:
+      - key: http.user_agent
+        action: delete
+      - key: http.request.body
+        action: delete
+  
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 100
+    policies:
+      - name: errors-policy
+        type: status_code
+        status_code: {status_codes: [ERROR]}
+      - name: slow-traces-policy
+        type: latency
+        latency: {threshold_ms: 1000}
+      - name: probabilistic-policy
+        type: probabilistic
+        probabilistic: {sampling_percentage: 10}
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+    tls:
+      insecure: true
+  
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+  
+  logging:
+    loglevel: info
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  
+  zpages:
+    endpoint: 0.0.0.0:55679
+  
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+service:
+  extensions: [health_check, zpages, pprof]
+  
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes, tail_sampling]
+      exporters: [jaeger, otlp/tempo]
+    
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheus, prometheusremotewrite]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [loki, logging]

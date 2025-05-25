@@ -1,9 +1,51 @@
 [Unit]
-Description=janus python wrapper
-After=multi-user.target
+Description=Ooblex API Service
+Documentation=https://github.com/yourusername/ooblex
+After=network.target redis.service rabbitmq-server.service postgresql.service
+Requires=redis.service rabbitmq-server.service postgresql.service
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/python3 /root/ooblex/code/api.py > /root/logs/api.log 2>&1
+Type=notify
+ExecStartPre=/bin/sh -c 'until nc -z localhost 5672; do sleep 1; done'
+ExecStartPre=/bin/sh -c 'until nc -z localhost 6379; do sleep 1; done'
+ExecStartPre=/bin/sh -c 'until nc -z localhost 5432; do sleep 1; done'
+ExecStart=/opt/ooblex/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8800 --workers 4
+WorkingDirectory=/opt/ooblex/services/api
+Restart=always
+RestartSec=10
+User=ooblex
+Group=ooblex
+Environment="PATH=/opt/ooblex/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/ooblex/services/api"
+EnvironmentFile=/opt/ooblex/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ooblex/logs /opt/ooblex/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateMounts=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=2G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ooblex-api
+
 [Install]
 WantedBy=multi-user.target

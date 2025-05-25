@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ooblex.fullname" . }}-config
+  labels:
+    {{- include "ooblex.labels" . | nindent 4 }}
+data:
+  # General Configuration
+  NODE_ENV: {{ .Values.global.environment | default "production" | quote }}
+  LOG_LEVEL: {{ .Values.api.env.LOG_LEVEL | quote }}
+  
+  # Service URLs
+  REDIS_URL: {{ include "ooblex.redisUrl" . | quote }}
+  RABBITMQ_URL: {{ include "ooblex.rabbitmqUrl" . | quote }}
+  DATABASE_URL: {{ include "ooblex.postgresUrl" . | quote }}
+  
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: {{ .Values.api.service.port | quote }}
+  API_WORKERS: {{ .Values.api.env.API_WORKERS | quote }}
+  CORS_ORIGINS: {{ .Values.api.env.CORS_ORIGINS | quote }}
+  
+  # WebRTC Configuration
+  WEBRTC_STUN_SERVERS: {{ .Values.webrtc.env.WEBRTC_STUN_SERVERS | quote }}
+  
+  # ML Configuration
+  MODEL_PATH: "/models"
+  MODEL_CACHE_SIZE: {{ .Values.mlWorker.env.MODEL_CACHE_SIZE | quote }}
+  
+  # Feature Flags
+  ENABLE_FACE_SWAP: {{ .Values.features.faceSwap | default true | quote }}
+  ENABLE_OBJECT_DETECTION: {{ .Values.features.objectDetection | default true | quote }}
+  ENABLE_STYLE_TRANSFER: {{ .Values.features.styleTransfer | default true | quote }}
+  ENABLE_BACKGROUND_REMOVAL: {{ .Values.features.backgroundRemoval | default true | quote }}
+  
+  # Rate Limiting
+  RATE_LIMIT_ENABLED: {{ .Values.api.env.RATE_LIMIT_ENABLED | quote }}
+  RATE_LIMIT_PER_MINUTE: {{ .Values.api.env.RATE_LIMIT_PER_MINUTE | quote }}

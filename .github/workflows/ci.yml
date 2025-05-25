@@ -1,0 +1,234 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+    
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+    
+    - name: Check formatting with black
+      run: black --check .
+    
+    - name: Check import sorting with isort
+      run: isort --check-only .
+    
+    - name: Type checking with mypy
+      run: mypy . --ignore-missing-imports
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ooblex
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: ooblex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+    
+    - name: Run tests with coverage
+      env:
+        REDIS_URL: redis://localhost:6379
+        DATABASE_URL: postgresql://ooblex:test@localhost:5432/ooblex_test
+      run: |
+        pytest tests/ -v --cov=ooblex --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit
+        bandit -r . -f json -o bandit-results.json
+    
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-results
+        path: bandit-results.json
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [api, webrtc, ml-worker, decoder, mjpeg]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/${{ matrix.service }}
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/secret.yaml
+        kubectl apply -f k8s/
+        kubectl rollout status deployment -n ooblex --timeout=10m
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'release'
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install ooblex ./charts/ooblex \
+          --namespace ooblex \
+          --create-namespace \
+          --set image.tag=${{ github.event.release.tag_name }} \
+          --values ./charts/ooblex/values.prod.yaml \
+          --wait

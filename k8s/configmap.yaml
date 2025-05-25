@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ooblex-config
+  namespace: ooblex
+data:
+  # General Configuration
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  
+  # Service URLs
+  REDIS_URL: "redis://redis-service:6379"
+  RABBITMQ_URL: "amqp://admin:admin@rabbitmq-service:5672"
+  DATABASE_URL: "postgresql://ooblex:ooblex@postgres-service:5432/ooblex"
+  
+  # WebRTC Configuration
+  WEBRTC_STUN_SERVERS: "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+  
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: "8800"
+  API_WORKERS: "4"
+  
+  # CORS Configuration
+  CORS_ORIGINS: "*"
+  
+  # Feature Flags
+  ENABLE_FACE_SWAP: "true"
+  ENABLE_OBJECT_DETECTION: "true"
+  ENABLE_STYLE_TRANSFER: "true"
+  ENABLE_BACKGROUND_REMOVAL: "true"
+  
+  # Rate Limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_PER_MINUTE: "60"
+  
+  # Model Configuration
+  MODEL_PATH: "/models"
+  MODEL_CACHE_SIZE: "5"
+  
+  # Telemetry
+  TELEMETRY_ENABLED: "false"

@@ -1,0 +1,378 @@
+syntax = "proto3";
+
+package ooblex;
+
+option go_package = "github.com/yourusername/ooblex/proto;ooblex";
+option java_package = "com.ooblex.proto";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+
+// Common messages
+message StreamToken {
+  string token = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int32 ttl_seconds = 3;
+}
+
+message ProcessingTask {
+  string task_id = 1;
+  string stream_token = 2;
+  ProcessType process_type = 3;
+  map<string, string> parameters = 4;
+  TaskStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string error_message = 8;
+}
+
+enum ProcessType {
+  PROCESS_TYPE_UNKNOWN = 0;
+  PROCESS_TYPE_FACE_SWAP = 1;
+  PROCESS_TYPE_STYLE_TRANSFER = 2;
+  PROCESS_TYPE_BACKGROUND_REMOVAL = 3;
+  PROCESS_TYPE_OBJECT_DETECTION = 4;
+  PROCESS_TYPE_FACE_DETECTION = 5;
+  PROCESS_TYPE_POSE_ESTIMATION = 6;
+}
+
+enum TaskStatus {
+  TASK_STATUS_UNKNOWN = 0;
+  TASK_STATUS_QUEUED = 1;
+  TASK_STATUS_PROCESSING = 2;
+  TASK_STATUS_COMPLETED = 3;
+  TASK_STATUS_FAILED = 4;
+  TASK_STATUS_CANCELLED = 5;
+}
+
+message Frame {
+  bytes data = 1;
+  string format = 2;  // jpeg, png, webp
+  int32 width = 3;
+  int32 height = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  int64 sequence_number = 6;
+}
+
+message ModelInfo {
+  string name = 1;
+  string version = 2;
+  string type = 3;  // onnx, torch, tensorflow
+  int64 size_bytes = 4;
+  map<string, string> metadata = 5;
+  google.protobuf.Timestamp loaded_at = 6;
+}
+
+// API Service
+service APIService {
+  // Authentication
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
+  
+  // User management
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  
+  // Processing
+  rpc CreateTask(CreateTaskRequest) returns (ProcessingTask);
+  rpc GetTask(GetTaskRequest) returns (ProcessingTask);
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+  rpc CancelTask(CancelTaskRequest) returns (ProcessingTask);
+  
+  // Streaming
+  rpc StreamStatus(StreamStatusRequest) returns (stream TaskStatusUpdate);
+}
+
+// Authentication messages
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int32 expires_in = 3;
+  User user = 4;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  int32 expires_in = 2;
+}
+
+message LogoutRequest {
+  string access_token = 1;
+}
+
+// User messages
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string full_name = 4;
+  bool disabled = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  string email = 2;
+  string full_name = 3;
+}
+
+// Task messages
+message CreateTaskRequest {
+  string stream_token = 1;
+  ProcessType process_type = 2;
+  map<string, string> parameters = 3;
+}
+
+message GetTaskRequest {
+  string task_id = 1;
+}
+
+message ListTasksRequest {
+  string stream_token = 1;
+  TaskStatus status = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListTasksResponse {
+  repeated ProcessingTask tasks = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message CancelTaskRequest {
+  string task_id = 1;
+}
+
+message StreamStatusRequest {
+  string stream_token = 1;
+}
+
+message TaskStatusUpdate {
+  ProcessingTask task = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+// ML Worker Service
+service MLWorkerService {
+  // Model management
+  rpc LoadModel(LoadModelRequest) returns (LoadModelResponse);
+  rpc UnloadModel(UnloadModelRequest) returns (google.protobuf.Empty);
+  rpc ListModels(google.protobuf.Empty) returns (ListModelsResponse);
+  
+  // Processing
+  rpc ProcessFrame(ProcessFrameRequest) returns (ProcessFrameResponse);
+  rpc ProcessFrameStream(stream ProcessFrameRequest) returns (stream ProcessFrameResponse);
+  
+  // Health
+  rpc GetWorkerStatus(google.protobuf.Empty) returns (WorkerStatus);
+}
+
+message LoadModelRequest {
+  string model_name = 1;
+  string model_path = 2;
+  string model_type = 3;
+}
+
+message LoadModelResponse {
+  ModelInfo model = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+message UnloadModelRequest {
+  string model_name = 1;
+}
+
+message ListModelsResponse {
+  repeated ModelInfo models = 1;
+}
+
+message ProcessFrameRequest {
+  Frame frame = 1;
+  ProcessType process_type = 2;
+  string model_name = 3;
+  map<string, string> parameters = 4;
+  string request_id = 5;
+}
+
+message ProcessFrameResponse {
+  Frame processed_frame = 1;
+  map<string, google.protobuf.Any> metadata = 2;
+  string request_id = 3;
+  float processing_time_ms = 4;
+  bool success = 5;
+  string error_message = 6;
+}
+
+message WorkerStatus {
+  string worker_id = 1;
+  bool healthy = 2;
+  int32 loaded_models = 3;
+  float gpu_memory_used_mb = 4;
+  float gpu_memory_total_mb = 5;
+  float gpu_utilization_percent = 6;
+  int32 active_tasks = 7;
+  google.protobuf.Timestamp started_at = 8;
+}
+
+// WebRTC Service
+service WebRTCService {
+  // Signaling
+  rpc CreatePeerConnection(CreatePeerConnectionRequest) returns (CreatePeerConnectionResponse);
+  rpc SetRemoteDescription(SetRemoteDescriptionRequest) returns (google.protobuf.Empty);
+  rpc AddIceCandidate(AddIceCandidateRequest) returns (google.protobuf.Empty);
+  rpc ClosePeerConnection(ClosePeerConnectionRequest) returns (google.protobuf.Empty);
+  
+  // Streaming
+  rpc SignalingStream(stream SignalingMessage) returns (stream SignalingMessage);
+  
+  // Media control
+  rpc SetTransform(SetTransformRequest) returns (google.protobuf.Empty);
+  rpc GetStreamStats(GetStreamStatsRequest) returns (StreamStats);
+}
+
+message CreatePeerConnectionRequest {
+  string peer_id = 1;
+  repeated string ice_servers = 2;
+}
+
+message CreatePeerConnectionResponse {
+  string peer_id = 1;
+  string session_id = 2;
+}
+
+message SetRemoteDescriptionRequest {
+  string peer_id = 1;
+  string type = 2;  // offer, answer
+  string sdp = 3;
+}
+
+message AddIceCandidateRequest {
+  string peer_id = 1;
+  string candidate = 2;
+  string sdp_mid = 3;
+  int32 sdp_m_line_index = 4;
+}
+
+message ClosePeerConnectionRequest {
+  string peer_id = 1;
+}
+
+message SignalingMessage {
+  string peer_id = 1;
+  oneof message {
+    SdpMessage sdp = 2;
+    IceCandidate ice = 3;
+    ControlMessage control = 4;
+  }
+}
+
+message SdpMessage {
+  string type = 1;
+  string sdp = 2;
+}
+
+message IceCandidate {
+  string candidate = 1;
+  string sdp_mid = 2;
+  int32 sdp_m_line_index = 3;
+}
+
+message ControlMessage {
+  string type = 1;
+  map<string, string> parameters = 2;
+}
+
+message SetTransformRequest {
+  string peer_id = 1;
+  ProcessType transform_type = 2;
+  map<string, string> parameters = 3;
+}
+
+message GetStreamStatsRequest {
+  string peer_id = 1;
+}
+
+message StreamStats {
+  string peer_id = 1;
+  int64 bytes_sent = 2;
+  int64 bytes_received = 3;
+  int32 packets_sent = 4;
+  int32 packets_received = 5;
+  int32 packets_lost = 6;
+  float jitter = 7;
+  float round_trip_time_ms = 8;
+  int32 frame_rate = 9;
+  int32 width = 10;
+  int32 height = 11;
+  string codec = 12;
+  google.protobuf.Timestamp connected_at = 13;
+}
+
+// Monitoring Service
+service MonitoringService {
+  rpc GetSystemMetrics(google.protobuf.Empty) returns (SystemMetrics);
+  rpc GetServiceHealth(GetServiceHealthRequest) returns (ServiceHealth);
+  rpc StreamMetrics(StreamMetricsRequest) returns (stream MetricUpdate);
+}
+
+message SystemMetrics {
+  float cpu_usage_percent = 1;
+  float memory_usage_percent = 2;
+  int64 memory_used_bytes = 3;
+  int64 memory_total_bytes = 4;
+  repeated GpuMetrics gpus = 5;
+  map<string, int64> disk_usage = 6;
+  float network_rx_mbps = 7;
+  float network_tx_mbps = 8;
+}
+
+message GpuMetrics {
+  int32 index = 1;
+  string name = 2;
+  float memory_used_mb = 3;
+  float memory_total_mb = 4;
+  float utilization_percent = 5;
+  float temperature_celsius = 6;
+}
+
+message GetServiceHealthRequest {
+  string service_name = 1;
+}
+
+message ServiceHealth {
+  string service_name = 1;
+  bool healthy = 2;
+  map<string, bool> checks = 3;
+  google.protobuf.Timestamp last_check = 4;
+}
+
+message StreamMetricsRequest {
+  repeated string metrics = 1;
+  int32 interval_seconds = 2;
+}
+
+message MetricUpdate {
+  string name = 1;
+  double value = 2;
+  map<string, string> labels = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}

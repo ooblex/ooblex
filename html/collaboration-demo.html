@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooblex Collaboration Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        #demo-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background: #45B7D1;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .icon-cursor::before { content: "↖"; }
+        .icon-pen::before { content: "✏"; }
+        .icon-arrow::before { content: "→"; }
+        .icon-rectangle::before { content: "▭"; }
+        .icon-circle::before { content: "○"; }
+        .icon-text::before { content: "T"; }
+        .icon-clear::before { content: "🗑"; }
+        .icon-record::before { content: "⏺"; }
+        .icon-stop::before { content: "⏹"; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ooblex Real-Time Collaboration Demo</h1>
+        
+        <div class="video-container">
+            <video id="demo-video" controls>
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        
+        <div class="controls">
+            <h2>Collaboration Settings</h2>
+            
+            <div class="control-group">
+                <label for="session-id">Session ID:</label>
+                <input type="text" id="session-id" placeholder="Enter session ID or leave blank to generate" />
+            </div>
+            
+            <div class="control-group">
+                <label for="stream-id">Stream ID:</label>
+                <input type="text" id="stream-id" value="demo-stream-001" />
+            </div>
+            
+            <div class="control-group">
+                <label for="user-name">Your Name:</label>
+                <input type="text" id="user-name" placeholder="Enter your name" value="Demo User" />
+            </div>
+            
+            <div class="control-group">
+                <label for="ws-url">WebSocket URL:</label>
+                <input type="text" id="ws-url" value="ws://localhost:8765" />
+            </div>
+            
+            <div class="control-group">
+                <button id="connect-btn" onclick="connect()">Connect to Session</button>
+                <button id="disconnect-btn" onclick="disconnect()" disabled>Disconnect</button>
+                <button id="create-session-btn" onclick="createNewSession()">Create New Session</button>
+            </div>
+            
+            <div class="status" id="status">
+                Status: Not connected
+            </div>
+        </div>
+        
+        <div class="controls" style="margin-top: 20px;">
+            <h2>Session Information</h2>
+            <div id="session-info">
+                <p>Connect to a session to see information</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/collaboration.js"></script>
+    <script>
+        let collaborationClient = null;
+        
+        function generateSessionId() {
+            return 'session_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function generateUserId() {
+            return 'user_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = 'Status: ' + message;
+        }
+        
+        function updateSessionInfo(info) {
+            const sessionInfoDiv = document.getElementById('session-info');
+            sessionInfoDiv.innerHTML = `
+                <p><strong>Session ID:</strong> ${info.sessionId}</p>
+                <p><strong>Stream ID:</strong> ${info.streamId}</p>
+                <p><strong>Active Users:</strong> ${info.activeUsers}</p>
+                <p><strong>Your User ID:</strong> ${info.userId}</p>
+                <p><strong>Connection Status:</strong> ${info.connected ? 'Connected' : 'Disconnected'}</p>
+            `;
+        }
+        
+        async function connect() {
+            const sessionId = document.getElementById('session-id').value || generateSessionId();
+            const streamId = document.getElementById('stream-id').value;
+            const userName = document.getElementById('user-name').value || 'Anonymous';
+            const wsUrl = document.getElementById('ws-url').value;
+            const videoElement = document.getElementById('demo-video');
+            
+            if (!streamId) {
+                alert('Please enter a Stream ID');
+                return;
+            }
+            
+            updateStatus('Connecting...');
+            
+            try {
+                collaborationClient = new CollaborationClient({
+                    wsUrl: wsUrl,
+                    sessionId: sessionId,
+                    streamId: streamId,
+                    userId: generateUserId(),
+                    userName: userName,
+                    videoElement: videoElement,
+                    onReady: () => {
+                        updateStatus('Connected to session: ' + sessionId);
+                        document.getElementById('session-id').value = sessionId;
+                        document.getElementById('connect-btn').disabled = true;
+                        document.getElementById('disconnect-btn').disabled = false;
+                        
+                        updateSessionInfo({
+                            sessionId: sessionId,
+                            streamId: streamId,
+                            activeUsers: collaborationClient.users.size,
+                            userId: collaborationClient.options.userId,
+                            connected: true
+                        });
+                    },
+                    onError: (error) => {
+                        console.error('Collaboration error:', error);
+                        updateStatus('Error: ' + error.message);
+                    }
+                });
+            } catch (error) {
+                updateStatus('Failed to connect: ' + error.message);
+                console.error('Connection error:', error);
+            }
+        }
+        
+        function disconnect() {
+            if (collaborationClient) {
+                collaborationClient.destroy();
+                collaborationClient = null;
+                updateStatus('Disconnected');
+                document.getElementById('connect-btn').disabled = false;
+                document.getElementById('disconnect-btn').disabled = true;
+                
+                updateSessionInfo({
+                    connected: false
+                });
+            }
+        }
+        
+        async function createNewSession() {
+            const sessionId = generateSessionId();
+            document.getElementById('session-id').value = sessionId;
+            updateStatus('New session ID generated: ' + sessionId);
+            
+            // Optionally, create the session via API
+            try {
+                const response = await fetch('http://localhost:8000/api/collaboration/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        stream_id: document.getElementById('stream-id').value,
+                        session_name: 'Demo Session ' + new Date().toLocaleString()
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('session-id').value = data.session_id;
+                    updateStatus('Session created via API: ' + data.session_id);
+                }
+            } catch (error) {
+                console.log('API not available, using generated session ID');
+            }
+        }
+        
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            if (collaborationClient) {
+                collaborationClient.destroy();
+            }
+        });
+        
+        // Keyboard shortcuts info
+        document.addEventListener('DOMContentLoaded', () => {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'controls';
+            infoDiv.style.marginTop = '20px';
+            infoDiv.innerHTML = `
+                <h2>Keyboard Shortcuts</h2>
+                <ul>
+                    <li><strong>Ctrl/Cmd + Z:</strong> Undo last annotation</li>
+                    <li><strong>Ctrl/Cmd + C:</strong> Clear all annotations</li>
+                </ul>
+                
+                <h2>How to Use</h2>
+                <ol>
+                    <li>Click "Create New Session" or enter an existing Session ID</li>
+                    <li>Click "Connect to Session" to join the collaboration</li>
+                    <li>Use the toolbar that appears to draw, annotate, and chat</li>
+                    <li>Share the Session ID with others to collaborate in real-time</li>
+                </ol>
+            `;
+            document.querySelector('.container').appendChild(infoDiv);
+        });
+    </script>
+</body>
+</html>

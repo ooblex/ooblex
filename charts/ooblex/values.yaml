@@ -1,0 +1,315 @@
+# Default values for ooblex
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  image:
+    registry: ghcr.io
+    repository: yourusername/ooblex
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  
+  # Storage class for persistent volumes
+  storageClass: "fast-ssd"
+  
+  # Domain configuration
+  domain: ooblex.example.com
+  
+  # TLS configuration
+  tls:
+    enabled: true
+    issuer: letsencrypt-prod
+
+# Service-specific configurations
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: api
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8800
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  env:
+    LOG_LEVEL: "INFO"
+    API_WORKERS: "4"
+    CORS_ORIGINS: "*"
+    RATE_LIMIT_ENABLED: "true"
+    RATE_LIMIT_PER_MINUTE: "60"
+
+webrtc:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: webrtc
+    tag: latest
+  
+  service:
+    type: LoadBalancer
+    port: 8100
+    nodePortRange:
+      start: 30000
+      end: 30100
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+  
+  env:
+    WEBRTC_STUN_SERVERS: "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302"
+
+mlWorker:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ml-worker
+    tag: latest
+  
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+      nvidia.com/gpu: 1
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+      nvidia.com/gpu: 1
+  
+  # Node selector for GPU nodes
+  nodeSelector:
+    gpu: "true"
+  
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 60
+      - type: Resource
+        resource:
+          name: memory
+          target:
+            type: Utilization
+            averageUtilization: 70
+  
+  env:
+    MODEL_CACHE_SIZE: "5"
+    CUDA_VISIBLE_DEVICES: "0"
+    TF_CPP_MIN_LOG_LEVEL: "2"
+
+decoder:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: decoder
+    tag: latest
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+mjpeg:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: mjpeg
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8081
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Infrastructure dependencies
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "change-me-in-production"
+  master:
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: admin
+    password: "change-me-in-production"
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+postgresql:
+  enabled: true
+  auth:
+    username: ooblex
+    password: "change-me-in-production"
+    database: ooblex
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+# Monitoring
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: true
+  pushgateway:
+    enabled: false
+  nodeExporter:
+    enabled: true
+  kubeStateMetrics:
+    enabled: true
+  server:
+    persistentVolume:
+      enabled: true
+      size: 20Gi
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: "change-me-in-production"
+  persistence:
+    enabled: true
+    size: 5Gi
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://ooblex-prometheus-server
+          access: proxy
+          isDefault: true
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "webrtc-service,api-service"
+  hosts:
+    - host: ooblex.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+    - host: api.ooblex.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api
+    - host: webrtc.ooblex.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: webrtc
+    - host: stream.ooblex.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: mjpeg
+
+# Model storage
+models:
+  persistence:
+    enabled: true
+    size: 50Gi
+    accessModes:
+      - ReadWriteMany
+    # Pre-populate with models
+    initContainer:
+      enabled: false
+      image: busybox
+      command: ["sh", "-c", "echo 'Download models here'"]
+
+# Security
+security:
+  podSecurityPolicy:
+    enabled: false
+  networkPolicy:
+    enabled: true
+  secrets:
+    jwt: "your-secret-key-change-in-production"
+
+# Service Mesh (optional)
+serviceMesh:
+  enabled: false
+  provider: istio  # or linkerd
+
+# Backup configuration
+backup:
+  enabled: false
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 7  # Keep 7 days of backups

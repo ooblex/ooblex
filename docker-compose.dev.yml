@@ -1,0 +1,158 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # API with hot reload
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/api:/app
+      - api_cache:/home/ooblex/.cache
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8800 --reload --log-level debug
+
+  # WebRTC with development mode
+  webrtc:
+    build:
+      context: ./services/webrtc
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/webrtc:/app
+      - webrtc_cache:/home/ooblex/.cache
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=DEBUG
+    command: python -m webrtc_gateway --dev
+
+  # ML Worker with development mode
+  ml-worker:
+    build:
+      context: ./services/ml-worker
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/ml-worker:/app
+      - ./models:/models
+      - ml_cache:/home/ooblex/.cache
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=DEBUG
+      - CUDA_VISIBLE_DEVICES=0
+    command: python -m ml_worker --dev
+    deploy:
+      replicas: 1  # Single instance for development
+
+  # Decoder with development mode
+  decoder:
+    build:
+      context: ./services/decoder
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/decoder:/app
+      - decoder_cache:/home/ooblex/.cache
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=DEBUG
+    command: python -m decoder --dev
+
+  # MJPEG with development mode
+  mjpeg:
+    build:
+      context: ./services/mjpeg
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./services/mjpeg:/app
+      - mjpeg_cache:/home/ooblex/.cache
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=DEBUG
+    command: python -m mjpeg_server --dev
+
+  # Development database with adminer
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+  # Development Redis commander
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    ports:
+      - "8083:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+
+  # Documentation server
+  docs:
+    image: squidfunk/mkdocs-material:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/docs
+    command: serve --dev-addr=0.0.0.0:8000
+
+  # Jupyter notebook for experimentation
+  jupyter:
+    image: jupyter/tensorflow-notebook:latest
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      GRANT_SUDO: "yes"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./models:/home/jovyan/models
+      - ./services:/home/jovyan/services:ro
+    command: start.sh jupyter lab --NotebookApp.token='' --NotebookApp.password=''
+
+  # Development frontend with hot reload
+  frontend-dev:
+    image: node:18-alpine
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8800
+      - REACT_APP_WS_URL=ws://localhost:8800
+      - REACT_APP_WEBRTC_URL=wss://localhost:8100
+    command: sh -c "npm install && npm start"
+
+volumes:
+  api_cache:
+  webrtc_cache:
+  ml_cache:
+  decoder_cache:
+  mjpeg_cache:
+
+networks:
+  default:
+    driver: bridge

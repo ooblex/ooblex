@@ -1,0 +1,21 @@
+{
+  "name": "ooblex-smart-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Ooblex content verification",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:polygon": "node deploy.js --network polygon",
+    "deploy:mumbai": "node deploy.js --network mumbai",
+    "verify": "npx hardhat verify --network"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
+    "web3": "^4.2.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "hardhat": "^2.18.0",
+    "solc": "^0.8.19"
+  }
+}

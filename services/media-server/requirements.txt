@@ -1,0 +1,6 @@
+aiohttp==3.9.5
+aiortc==1.6.0
+av==12.0.0
+numpy==1.26.4
+opencv-python==4.9.0.80
+websockets==12.0

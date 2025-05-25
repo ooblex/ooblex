@@ -1,0 +1,39 @@
+apiVersion: v2
+name: ooblex
+description: A Helm chart for Ooblex - Modern WebRTC AI Video Processing Platform
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+keywords:
+  - webrtc
+  - ai
+  - video-processing
+  - machine-learning
+  - real-time
+home: https://github.com/yourusername/ooblex
+sources:
+  - https://github.com/yourusername/ooblex
+maintainers:
+  - name: Ooblex Team
+    email: team@ooblex.com
+dependencies:
+  - name: redis
+    version: 18.6.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: rabbitmq
+    version: 12.8.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled
+  - name: postgresql
+    version: 13.2.24
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: prometheus
+    version: 25.8.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
+  - name: grafana
+    version: 7.0.19
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled

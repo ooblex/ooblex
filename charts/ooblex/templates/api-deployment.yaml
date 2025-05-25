@@ -1,0 +1,115 @@
+{{- if .Values.api.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ooblex.fullname" . }}-api
+  labels:
+    {{- include "ooblex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ooblex.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        {{- include "ooblex.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+    spec:
+      {{- with .Values.global.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ooblex.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
+      containers:
+      - name: api
+        securityContext:
+          {{- toYaml .Values.api.securityContext | nindent 12 }}
+        image: {{ include "ooblex.image" (dict "Values" .Values "service" .Values.api.image.repository "tag" .Values.api.image.tag) }}
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.api.service.port }}
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 5
+        resources:
+          {{- toYaml .Values.api.resources | nindent 12 }}
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ooblex.fullname" . }}-config
+              key: NODE_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ooblex.fullname" . }}-config
+              key: LOG_LEVEL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ooblex.fullname" . }}-config
+              key: REDIS_URL
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ooblex.fullname" . }}-config
+              key: RABBITMQ_URL
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ooblex.fullname" . }}-config
+              key: DATABASE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ooblex.fullname" . }}-secrets
+              key: JWT_SECRET
+        {{- range $key, $value := .Values.api.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        volumeMounts:
+        - name: ssl-certs
+          mountPath: /ssl
+          readOnly: true
+      volumes:
+      - name: ssl-certs
+        secret:
+          secretName: {{ include "ooblex.fullname" . }}-ssl-certs
+          optional: true
+      {{- with .Values.api.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,64 @@
+{
+  "name": "react-native-ooblex-sdk",
+  "version": "1.0.0",
+  "description": "Real-time AI video processing SDK for React Native",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "react-native",
+    "ooblex",
+    "webrtc",
+    "ai",
+    "video",
+    "processing",
+    "face-detection",
+    "emotion-recognition",
+    "real-time"
+  ],
+  "author": "Ooblex <support@ooblex.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ooblex/react-native-ooblex-sdk.git"
+  },
+  "homepage": "https://docs.ooblex.com/react-native-sdk",
+  "bugs": {
+    "url": "https://github.com/ooblex/react-native-ooblex-sdk/issues"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-native": ">=0.60.0"
+  },
+  "devDependencies": {
+    "@react-native-community/eslint-config": "^3.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^27.0.0",
+    "metro-react-native-babel-preset": "^0.72.0",
+    "react": "^18.0.0",
+    "react-native": "^0.70.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  },
+  "react-native": {
+    "ios": {
+      "project": "ios/OoblexSDK.xcodeproj"
+    },
+    "android": {
+      "sourceDir": "android"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "ios/",
+    "android/",
+    "react-native.config.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "types": "index.d.ts"
+}

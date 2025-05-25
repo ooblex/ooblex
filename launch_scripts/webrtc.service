@@ -1,9 +1,52 @@
 [Unit]
-Description=janus python wrapper
-After=multi-user.target
+Description=Ooblex WebRTC Gateway Service
+Documentation=https://github.com/yourusername/ooblex
+After=network.target redis.service rabbitmq-server.service janus.service
+Requires=redis.service rabbitmq-server.service
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/python3 /root/ooblex/code/rtc.py > /root/logs/webrtc.log 2>&1
+Type=simple
+ExecStartPre=/bin/sh -c 'until nc -z localhost 5672; do sleep 1; done'
+ExecStartPre=/bin/sh -c 'until nc -z localhost 6379; do sleep 1; done'
+ExecStart=/opt/ooblex/venv/bin/python -m webrtc_gateway
+WorkingDirectory=/opt/ooblex/services/webrtc
+Restart=always
+RestartSec=10
+User=ooblex
+Group=ooblex
+Environment="PATH=/opt/ooblex/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/ooblex/services/webrtc"
+EnvironmentFile=/opt/ooblex/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ooblex/logs /opt/ooblex/data /var/run/janus
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=false
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+PrivateMounts=true
+
+# Network access required
+PrivateNetwork=false
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=2G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ooblex-webrtc
+
 [Install]
 WantedBy=multi-user.target

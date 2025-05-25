@@ -1,0 +1,21 @@
+[Unit]
+Description=Ooblex Edge Computing Server
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=ooblex
+WorkingDirectory=/opt/ooblex/services/edge-compute
+ExecStart=/usr/bin/python3 edge_server.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment="PYTHONUNBUFFERED=1"
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=2G
+
+[Install]
+WantedBy=multi-user.target

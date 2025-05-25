@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: ooblex
+  labels:
+    app: api
+    component: backend
+spec:
+  ports:
+    - port: 8800
+      targetPort: 8800
+      protocol: TCP
+  selector:
+    app: api
+    component: backend
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: ooblex
+  labels:
+    app: api
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: api
+        component: backend
+    spec:
+      containers:
+      - name: api
+        image: ooblex/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8800
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: NODE_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: LOG_LEVEL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: REDIS_URL
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: RABBITMQ_URL
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: DATABASE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ooblex-secrets
+              key: JWT_SECRET
+        - name: API_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: API_HOST
+        - name: API_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: API_PORT
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: ooblex-config
+              key: CORS_ORIGINS
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8800
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8800
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: ssl-certs
+          mountPath: /ssl
+          readOnly: true
+      volumes:
+      - name: ssl-certs
+        secret:
+          secretName: ooblex-ssl-certs
+          optional: true
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+  namespace: ooblex
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
