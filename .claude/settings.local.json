@@ -4,7 +4,9 @@
       "Bash(chmod:*)",
       "Bash(mkdir:*)",
       "Bash(rm:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

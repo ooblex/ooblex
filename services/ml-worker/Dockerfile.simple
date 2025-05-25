@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgstreamer1.0-0 \
+    gstreamer1.0-plugins-base \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies - minimal set
+RUN pip install --no-cache-dir \
+    opencv-python-headless==4.10.0.84 \
+    numpy==1.26.4 \
+    redis==5.0.1 \
+    aioredis==2.0.1 \
+    pillow==11.0.0
+
+# Copy the simple worker
+COPY ml_worker_simple.py .
+COPY opencv_effects.py .
+
+# Download Haar cascades
+COPY download_cascades.py .
+RUN python download_cascades.py
+
+CMD ["python", "ml_worker_simple.py"]

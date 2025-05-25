@@ -1,0 +1,4 @@
+aioredis==2.0.1
+aio-pika==9.0.5
+opencv-python==4.8.1.78
+numpy==1.24.3

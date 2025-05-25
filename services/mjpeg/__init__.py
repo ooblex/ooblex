@@ -1,0 +1,1 @@
+"""MJPEG Streaming Service"""

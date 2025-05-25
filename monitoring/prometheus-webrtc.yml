@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'webrtc-server'
+    static_configs:
+      - targets: ['webrtc-server:9090']
+        labels:
+          service: 'webrtc'
+
+  - job_name: 'ml-worker-1'
+    static_configs:
+      - targets: ['ml-worker-1:9091']
+        labels:
+          service: 'ml-worker'
+          instance: 'worker-1'
+
+  - job_name: 'ml-worker-2'
+    static_configs:
+      - targets: ['ml-worker-2:9091']
+        labels:
+          service: 'ml-worker'
+          instance: 'worker-2'
+
+  - job_name: 'ml-worker-3'
+    static_configs:
+      - targets: ['ml-worker-3:9091']
+        labels:
+          service: 'ml-worker'
+          instance: 'worker-3'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:9121']
+        labels:
+          service: 'redis'

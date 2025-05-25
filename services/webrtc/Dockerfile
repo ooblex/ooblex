@@ -6,6 +6,13 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -22,6 +29,12 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y \
     libssl3 \
     curl \
+    libavformat58 \
+    libavcodec58 \
+    libavdevice58 \
+    libavutil56 \
+    libswscale5 \
+    libswresample3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -44,12 +57,11 @@ ENV PYTHONPATH=/app
 USER ooblex
 
 # Expose ports
-EXPOSE 8100
-EXPOSE 10000-10100/udp
+EXPOSE 8443 9090
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f https://localhost:8100/health || exit 1
+    CMD curl -f http://localhost:8443/health || exit 1
 
 # Run the application
-CMD ["python", "-m", "webrtc_gateway"]
+CMD ["python", "webrtc_server.py"]

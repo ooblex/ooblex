@@ -1,0 +1,7 @@
+onnxruntime==1.20.1
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+Pillow==11.0.0
+redis[hiredis]==5.2.1
+prometheus-client==0.21.1
+python-json-logger==3.2.1

@@ -5,17 +5,17 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)](docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-brightgreen.svg)](k8s/)
 
-Ooblex is a distributed, scalable platform for real-time AI video processing using WebRTC. It enables low-latency video transformations including face swapping, style transfer, object detection, and more.
+Ooblex is a real-time AI video processing platform using WebRTC. The original 2018 codebase has been modernized with Docker support and updated dependencies. This project demonstrates AI video transformations including face swapping, style transfer, and object detection.
 
 ## 🚀 Features
 
-- **Real-time Video Processing**: WebRTC-based streaming with sub-second latency
-- **AI Transformations**: Face swap, style transfer, background removal, object detection
-- **Scalable Architecture**: Microservices design with horizontal scaling
-- **GPU Acceleration**: Support for NVIDIA GPUs for ML workloads
-- **Modern Stack**: Python 3.11+, PyTorch/TensorFlow 2.x, FastAPI, Redis, RabbitMQ
-- **Cloud Native**: Docker, Kubernetes, and Helm chart support
-- **Production Ready**: Health checks, monitoring, logging, and security hardening
+- **WebRTC Video Input**: Real browser-based video capture and processing
+- **Parallel Processing**: Multiple ML workers process frames simultaneously  
+- **AI Transformations**: Face detection, style transfer, background blur, and more
+- **Real-time Output**: Processed video back to browser via WebRTC
+- **Scalable Architecture**: Add/remove workers dynamically
+- **Docker Deployment**: Complete stack with docker-compose
+- **Performance Monitoring**: Built-in Grafana dashboards
 
 ## 📋 Prerequisites
 
@@ -71,27 +71,117 @@ docker-compose up -d
 - RabbitMQ Management: http://localhost:15672 (admin/admin)
 - Grafana Dashboard: http://localhost:3000 (admin/admin)
 
+## 🎥 Quick Start - Real WebRTC Demo
+
+### One-Command Setup
+```bash
+# Start everything with parallel ML workers
+./run-webrtc-demo.sh
+
+# Open in browser
+https://localhost/webrtc-demo.html
+```
+
+### What You'll See
+1. Your webcam video on the left
+2. AI-processed video on the right
+3. Multiple effects to choose from
+4. Real-time performance metrics
+5. ~200-400ms processing latency
+
+### Test the Parallel Processing
+```bash
+# Run automated tests
+python3 test_webrtc_workflow.py
+
+# Monitor workers processing frames
+docker-compose -f docker-compose.webrtc.yml logs -f ml-worker
+```
+
+### Scale Workers
+```bash
+# Add more workers for faster processing
+docker-compose -f docker-compose.webrtc.yml up -d --scale ml-worker=5
+```
+
+**Working Effects**: Style Transfer, Face Detection, Background Blur, Edge Detection, Cartoon
+
+📖 See [WEBRTC_WORKFLOW.md](WEBRTC_WORKFLOW.md) for technical details
+
 ## 🏗️ Architecture
 
+### Working Implementation
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Nginx     │────▶│  API Gateway │────▶│   Redis     │
-│  (Ingress)  │     │   (FastAPI)  │     │   Cache     │
-└─────────────┘     └──────────────┘     └─────────────┘
-                            │
-                            ▼
-                    ┌──────────────┐
-                    │  RabbitMQ    │
-                    │  Message Bus │
-                    └──────────────┘
-                            │
+                      Browser WebRTC
+                           │
+                           ▼
+                   ┌───────────────┐
+                   │ WebRTC Server │  ✓ Working
+                   │   Port 8000   │
+                   └──────┬────────┘
+                           │
+                    Frames to Redis
+                           │
+                   ┌───────▼───────┐
+                   │ Redis Queue   │
+                   └──────┬───────┘
+                           │
         ┌───────────────────┼───────────────────┐
-        ▼                   ▼                   ▼
-┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│  ML Worker   │   │  ML Worker   │   │  ML Worker   │
-│   (GPU)      │   │   (GPU)      │   │   (GPU)      │
-└──────────────┘   └──────────────┘   └──────────────┘
+        │                   │                   │
+   ┌────▼─────┐       ┌────▼─────┐       ┌────▼─────┐
+   │ Worker 1 │       │ Worker 2 │       │ Worker 3 │
+   └────┬─────┘       └────┬─────┘       └────┬─────┘
+        │                   │                   │
+        └───────────────────┼───────────────────┘
+                           │
+                   Processed frames
+                           │
+                   ┌───────▼───────┐
+                   │ WebRTC Server │
+                   └──────┬───────┘
+                           │
+                           ▼
+                      Browser View
+                                │
+                    ┌───────────▼───────────┐
+                    │   Frame Decoder       │
+                    │ Extract video frames  │
+                    └───────────┬───────────┘
+                                │
+                    ┌───────────▼───────────┐
+                    │    Redis Queue        │
+                    │  Frames waiting for   │
+                    │     processing        │
+                    └───────────┬───────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        ↓                       ↓                       ↓
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│  ML Worker   │       │  ML Worker   │       │  ML Worker   │
+│ ┌──────────┐ │       │ ┌──────────┐ │       │ ┌──────────┐ │
+│ │Face Swap │ │       │ │  Style   │ │       │ │Background│ │
+│ │Detection │ │       │ │Transfer  │ │       │ │ Removal  │ │
+│ │Emotion   │ │       │ │Cartoon   │ │       │ │   Blur   │ │
+│ └──────────┘ │       │ └──────────┘ │       │ └──────────┘ │
+│   GPU/CPU    │       │   GPU/CPU    │       │   GPU/CPU    │
+└──────┬───────┘       └──────┬───────┘       └──────┬───────┘
+       └───────────────────────┼───────────────────────┘
+                               │
+                   ┌───────────▼───────────┐
+                   │  Processed Frames     │
+                   │   Ready for output    │
+                   └───────────┬───────────┘
+                               │
+                               │
+                    ┌───────────▼───────────┐
+                    │    MJPEG Output       │  ✓ Working
+                    │  HTTP Streaming       │
+                    │  localhost:8081       │
+                    └───────────────────────┘
 ```
+
+### Full Vision (Partially Implemented)
+The complete architecture includes WebRTC, WHIP/WHEP, HLS streaming, and more. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for implementation status.
 
 ## 🛠️ Development
 
@@ -148,17 +238,9 @@ make bench
 ./deploy.sh status
 ```
 
-### Kubernetes (Production)
-```bash
-# Deploy to Kubernetes
-./deploy.sh k8s
+### Advanced Deployment
 
-# Or using kubectl
-kubectl apply -f k8s/
-
-# Or using Helm
-helm install ooblex ./charts/ooblex
-```
+For Kubernetes deployment concepts, see the [deployment guide](docs/deployment.md). Note that Kubernetes manifests are examples and would need adaptation for your specific environment.
 
 ### Systemd (Bare Metal)
 ```bash
@@ -280,11 +362,22 @@ ENABLE_STYLE_TRANSFER=true
 
 ## 📚 Documentation
 
-- [API Documentation](docs/api.md)
-- [WebRTC Integration](docs/webrtc.md)
-- [ML Model Guide](docs/models.md)
-- [Deployment Guide](docs/deployment.md)
-- [Security Best Practices](docs/security.md)
+### Essential Reads
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - ⚠️ What's actually implemented vs. planned
+- **[QUICKSTART.md](QUICKSTART.md)** - 🚀 Get running in 2 minutes
+- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** - 🏗️ Architecture explanation
+
+### Technical Guides
+- [API Documentation](docs/api.md) - REST & WebSocket APIs
+- [WebRTC Integration](docs/webrtc.md) - Real-time streaming
+- [ML Model Guide](docs/models.md) - AI model integration
+- [Deployment Guide](docs/deployment.md) - Production deployment
+- [Security Best Practices](docs/security.md) - Security hardening
+- [VIDEO_FLOW.md](docs/VIDEO_FLOW.md) - Video pipeline details
+
+## ⚠️ Important Note
+
+This project includes comprehensive documentation for many advanced features. However, **not all features are fully implemented**. The documentation shows the architectural vision, while the implementation provides a working foundation. See [PROJECT_STATUS.md](PROJECT_STATUS.md) for details on what actually works.
 
 ## 📄 License
 

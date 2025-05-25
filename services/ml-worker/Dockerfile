@@ -70,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python -c "import torch; import tensorflow as tf; assert torch.cuda.is_available()" || exit 1
 
 # Run the application
-CMD ["python", "-m", "ml_worker"]
+CMD ["python", "ml_worker_parallel.py"]

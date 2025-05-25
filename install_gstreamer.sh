@@ -1,85 +1,92 @@
 #!/bin/bash
+# GStreamer Installation Script for Ooblex
+# Updated for modern GStreamer 1.24.x and container-friendly installation
 
-VERSION=1.12.4
+set -e
 
-mkdir ~/gstreamer_$VERSION
-cd ~/gstreamer_$VERSION
+# GStreamer version
+VERSION=${GSTREAMER_VERSION:-1.24.0}
 
-wget https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gst-libav/gst-libav-$VERSION.tar.xz
-wget https://gstreamer.freedesktop.org/src/gst-python/gst-python-$VERSION.tar.xz
-for a in `ls -1 *.tar.*`; do tar -xf $a; done
+echo "Installing GStreamer $VERSION for Ooblex..."
 
-sudo apt-get install build-essential dpkg-dev flex bison autotools-dev automake \
-liborc-dev autopoint libtool gtk-doc-tools yasm libgstreamer1.0-dev \
-libxv-dev libasound2-dev libtheora-dev libogg-dev libvorbis-dev \
-libbz2-dev libv4l-dev libvpx-dev libjack-jackd2-dev libsoup2.4-dev libpulse-dev \
-faad libfaad-dev libfaac-dev libgl1-mesa-dev libgles2-mesa-dev \
-libx264-dev libmad0-dev -y
+# Update package lists
+sudo apt-get update
 
+# Install build dependencies and runtime libraries
+sudo apt-get install -y \
+    build-essential \
+    meson \
+    ninja-build \
+    pkg-config \
+    python3 \
+    python3-pip \
+    python3-gi \
+    python3-gi-cairo \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gst-plugins-base-1.0 \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-good1.0-dev \
+    libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-tools \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    gstreamer1.0-nice \
+    gstreamer1.0-vaapi \
+    gstreamer1.0-rtsp \
+    libsrtp2-dev \
+    libnice-dev \
+    libwebrtc-audio-processing-dev \
+    libopus-dev \
+    libvpx-dev \
+    libx264-dev \
+    libx265-dev \
+    libde265-dev \
+    libva-dev \
+    libva-drm2 \
+    libva-x11-2 \
+    vainfo
 
-sudo apt-get install -y build-essential autotools-dev automake autoconf \
-                                    libtool autopoint libxml2-dev zlib1g-dev libglib2.0-dev \
-                                    pkg-config bison flex python3 git gtk-doc-tools libasound2-dev \
-                                    libgudev-1.0-dev libxt-dev libvorbis-dev libcdparanoia-dev \
-                                    libpango1.0-dev libtheora-dev libvisual-0.4-dev iso-codes \
-                                    libgtk-3-dev libraw1394-dev libiec61883-dev libavc1394-dev \
-                                    libv4l-dev libcairo2-dev libcaca-dev libspeex-dev libpng-dev \
-                                    libshout3-dev libjpeg-dev libaa1-dev libflac-dev libdv4-dev \
-                                    libtag1-dev libwavpack-dev libpulse-dev libsoup2.4-dev libbz2-dev \
-                                    libcdaudio-dev libdc1394-22-dev ladspa-sdk libass-dev \
-                                    libcurl4-gnutls-dev libdca-dev libdvdnav-dev \
-                                    libexempi-dev libexif-dev libfaad-dev libgme-dev libgsm1-dev \
-                                    libiptcdata0-dev libkate-dev libmimic-dev libmms-dev \
-                                    libmodplug-dev libmpcdec-dev libofa0-dev libopus-dev \
-                                    librsvg2-dev librtmp-dev libschroedinger-dev libslv2-dev \
-                                    libsndfile1-dev libsoundtouch-dev libspandsp-dev libx11-dev \
-                                    libxvidcore-dev libzbar-dev libzvbi-dev liba52-0.7.4-dev \
-                                    libcdio-dev libdvdread-dev libmad0-dev libmp3lame-dev \
-                                    libmpeg2-4-dev libopencore-amrnb-dev libopencore-amrwb-dev \
-                                    libsidplay1-dev libtwolame-dev libx264-dev libusb-1.0 \
-                                    python-gi-dev yasm python3-dev libgirepository1.0-dev
+# Install Python bindings
+pip3 install --user pygobject
 
-cd ~/gstreamer_$VERSION
+# For WebRTC support
+sudo apt-get install -y \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-nice \
+    libnice10 \
+    libnice-dev
 
-cd gstreamer-$VERSION
-./configure && make && sudo make install && cd ..
+# For hardware acceleration (optional)
+if lspci | grep -i nvidia > /dev/null; then
+    echo "NVIDIA GPU detected, installing NVENC support..."
+    sudo apt-get install -y gstreamer1.0-plugins-bad
+fi
 
-sudo ldconfig
+# Verify installation
+echo "Verifying GStreamer installation..."
+gst-inspect-1.0 --version
 
-#Base
-cd gst-plugins-base-$VERSION
-./configure && make && sudo make install && cd ..
-sudo ldconfig
+# Test WebRTC elements
+echo "Checking WebRTC support..."
+gst-inspect-1.0 webrtcbin || echo "Warning: webrtcbin not found"
+gst-inspect-1.0 rtpbin || echo "Warning: rtpbin not found"
 
-#Good - 8 minutes
-cd gst-plugins-good-$VERSION
-./autogen.sh && make && sudo make install && cd ..
+# Increase network buffer sizes for better streaming performance
+echo "Optimizing network settings..."
+sudo sysctl -w net.core.rmem_max=33554432
+sudo sysctl -w net.core.wmem_max=33554432
+sudo sysctl -w net.core.rmem_default=8388608
+sudo sysctl -w net.core.wmem_default=8388608
 
-#Bad
-cd gst-plugins-bad-$VERSION
-./configure && make && sudo make install && cd ..
+# Make settings persistent
+echo "net.core.rmem_max=33554432" | sudo tee -a /etc/sysctl.conf
+echo "net.core.wmem_max=33554432" | sudo tee -a /etc/sysctl.conf
+echo "net.core.rmem_default=8388608" | sudo tee -a /etc/sysctl.conf
+echo "net.core.wmem_default=8388608" | sudo tee -a /etc/sysctl.conf
 
-# Ugly
-cd gst-plugins-ugly-$VERSION
-./configure && make && sudo make install && cd ..
-
-# LibAV
-cd gst-libav-$VERSION
-./configure && make && sudo make install && cd ..
-
-# Python-bindings
-cd gst-python-$VERSION
-./configure && make && sudo make install && cd ..
-
-sudo ldconfig
-
-## Increase port size
-sudo /sbin/sysctl -w net.core.rmem_max=33554432 
-
-sudo pip install -U numpy
-sudo pip3 install -U numpy
+echo "GStreamer installation completed successfully!"
+echo "You can now use GStreamer with Ooblex for WebRTC streaming."

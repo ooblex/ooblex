@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooblex Live Demo - AI Video Processing</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #007EFC;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .video-box {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        video, img {
+            width: 100%;
+            max-width: 480px;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+        }
+        .controls {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007EFC;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0066d4;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        select {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            font-size: 16px;
+        }
+        .status {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .status.success { border-left: 4px solid #4CAF50; }
+        .status.error { border-left: 4px solid #f44336; }
+        .status.info { border-left: 4px solid #2196F3; }
+        .latency {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .effect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .effect-btn {
+            background: #333;
+            border: 2px solid transparent;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .effect-btn:hover {
+            border-color: #007EFC;
+        }
+        .effect-btn.active {
+            background: #007EFC;
+            border-color: #007EFC;
+        }
+        @media (max-width: 768px) {
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Ooblex Live Demo</h1>
+        <p class="subtitle">Real-time AI Video Processing in Your Browser</p>
+        
+        <div class="controls">
+            <h3>📹 Video Source</h3>
+            <button id="webcamBtn" onclick="startWebcam()">Use Webcam</button>
+            <button id="screenBtn" onclick="startScreen()">Share Screen</button>
+            <input type="file" id="videoFile" accept="video/*" style="display:none" onchange="handleVideoFile(event)">
+            <button onclick="document.getElementById('videoFile').click()">Upload Video</button>
+            
+            <h3>🎨 AI Effects</h3>
+            <div class="effect-grid">
+                <button class="effect-btn" onclick="selectEffect('none')">
+                    <div>🚫</div>
+                    <div>Original</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('face_swap')">
+                    <div>😄</div>
+                    <div>Face Swap</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('style_transfer')">
+                    <div>🎨</div>
+                    <div>Style Transfer</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('background_blur')">
+                    <div>🌁</div>
+                    <div>Background Blur</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('cartoon')">
+                    <div>🎭</div>
+                    <div>Cartoonify</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('emotion')">
+                    <div>😊</div>
+                    <div>Emotion Detection</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('object_detect')">
+                    <div>📦</div>
+                    <div>Object Detection</div>
+                </button>
+                <button class="effect-btn" onclick="selectEffect('pose')">
+                    <div>🕺</div>
+                    <div>Pose Tracking</div>
+                </button>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <label>Style (for Style Transfer):</label>
+                <select id="styleSelect">
+                    <option value="vangogh">Van Gogh</option>
+                    <option value="picasso">Picasso</option>
+                    <option value="monet">Monet</option>
+                    <option value="ukiyoe">Ukiyo-e</option>
+                    <option value="sketch">Sketch</option>
+                </select>
+                
+                <label>Quality:</label>
+                <select id="qualitySelect">
+                    <option value="1080p">1080p</option>
+                    <option value="720p" selected>720p</option>
+                    <option value="480p">480p</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="video-container">
+            <div class="video-box">
+                <h3>📥 Original</h3>
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="latency" id="inputLatency">Input: --ms</div>
+            </div>
+            <div class="video-box">
+                <h3>🎬 Processed</h3>
+                <div style="position: relative;">
+                    <video id="remoteVideo" autoplay playsinline style="display:none"></video>
+                    <img id="mjpegStream" style="display:none">
+                    <div class="latency" id="outputLatency">Processing: --ms</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>🎛️ Output Options</h3>
+            <button onclick="switchOutput('webrtc')" id="webrtcOutput">WebRTC (Low Latency)</button>
+            <button onclick="switchOutput('mjpeg')" id="mjpegOutput">MJPEG Stream</button>
+            <button onclick="switchOutput('hls')" id="hlsOutput">HLS (CDN-Ready)</button>
+            <button onclick="downloadProcessed()">💾 Download Video</button>
+            <button onclick="shareLink()">🔗 Share Link</button>
+        </div>
+        
+        <div id="status" class="status info">
+            Ready to start. Click "Use Webcam" or "Share Screen" to begin.
+        </div>
+    </div>
+
+    <script>
+        let localStream = null;
+        let pc = null;
+        let ws = null;
+        let currentEffect = 'none';
+        let currentOutput = 'webrtc';
+        let streamId = 'demo-' + Math.random().toString(36).substr(2, 9);
+        
+        // Initialize WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.hostname}:8100/ws/${streamId}`);
+            
+            ws.onopen = () => {
+                updateStatus('Connected to Ooblex server', 'success');
+            };
+            
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'answer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                } else if (data.type === 'ice-candidate') {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } else if (data.type === 'latency') {
+                    document.getElementById('outputLatency').textContent = `Processing: ${data.latency}ms`;
+                }
+            };
+            
+            ws.onerror = (error) => {
+                updateStatus('WebSocket error: ' + error, 'error');
+            };
+            
+            ws.onclose = () => {
+                updateStatus('Disconnected from server', 'error');
+            };
+        }
+        
+        async function startWebcam() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                };
+                
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('localVideo').srcObject = localStream;
+                
+                updateStatus('Webcam started successfully', 'success');
+                await setupWebRTC();
+            } catch (error) {
+                updateStatus('Failed to access webcam: ' + error.message, 'error');
+            }
+        }
+        
+        async function startScreen() {
+            try {
+                localStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: false
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+                
+                updateStatus('Screen sharing started', 'success');
+                await setupWebRTC();
+            } catch (error) {
+                updateStatus('Failed to share screen: ' + error.message, 'error');
+            }
+        }
+        
+        async function setupWebRTC() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                connectWebSocket();
+                await new Promise(resolve => {
+                    const checkConnection = setInterval(() => {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            clearInterval(checkConnection);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+            
+            // Create peer connection
+            pc = new RTCPeerConnection({
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' }
+                ]
+            });
+            
+            // Add local stream
+            localStream.getTracks().forEach(track => {
+                pc.addTrack(track, localStream);
+            });
+            
+            // Handle remote stream
+            pc.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                if (currentOutput === 'webrtc') {
+                    document.getElementById('remoteVideo').style.display = 'block';
+                }
+            };
+            
+            // Create offer
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            
+            // Send offer with selected effect
+            ws.send(JSON.stringify({
+                type: 'offer',
+                offer: offer,
+                effect: currentEffect,
+                style: document.getElementById('styleSelect').value,
+                quality: document.getElementById('qualitySelect').value
+            }));
+            
+            // Measure latency
+            startLatencyMeasurement();
+        }
+        
+        function selectEffect(effect) {
+            currentEffect = effect;
+            
+            // Update UI
+            document.querySelectorAll('.effect-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.effect-btn').classList.add('active');
+            
+            // Apply effect if stream is active
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'change-effect',
+                    effect: effect,
+                    style: document.getElementById('styleSelect').value
+                }));
+                updateStatus(`Applied effect: ${effect}`, 'success');
+            }
+        }
+        
+        function switchOutput(type) {
+            currentOutput = type;
+            
+            // Update UI
+            document.querySelectorAll('[id$="Output"]').forEach(btn => {
+                btn.style.background = '#333';
+            });
+            document.getElementById(type + 'Output').style.background = '#007EFC';
+            
+            // Switch output display
+            const remoteVideo = document.getElementById('remoteVideo');
+            const mjpegStream = document.getElementById('mjpegStream');
+            
+            if (type === 'webrtc') {
+                remoteVideo.style.display = 'block';
+                mjpegStream.style.display = 'none';
+            } else if (type === 'mjpeg') {
+                remoteVideo.style.display = 'none';
+                mjpegStream.style.display = 'block';
+                mjpegStream.src = `http://${window.location.hostname}:8081/${streamId}.mjpg`;
+            } else if (type === 'hls') {
+                // Would need HLS.js player here
+                updateStatus('HLS output: http://' + window.location.hostname + ':8084/' + streamId + '/playlist.m3u8', 'info');
+            }
+        }
+        
+        function startLatencyMeasurement() {
+            setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const timestamp = Date.now();
+                    ws.send(JSON.stringify({
+                        type: 'ping',
+                        timestamp: timestamp
+                    }));
+                }
+            }, 1000);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+        
+        function handleVideoFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const video = document.getElementById('localVideo');
+                video.src = URL.createObjectURL(file);
+                video.play();
+                updateStatus('Video file loaded. Processing will begin when you select an effect.', 'info');
+            }
+        }
+        
+        function downloadProcessed() {
+            updateStatus('Starting video download...', 'info');
+            // Implementation would download the processed video
+        }
+        
+        function shareLink() {
+            const link = `${window.location.origin}/watch/${streamId}`;
+            navigator.clipboard.writeText(link);
+            updateStatus('Share link copied to clipboard: ' + link, 'success');
+        }
+        
+        // Initialize on load
+        window.onload = () => {
+            updateStatus('Welcome to Ooblex! Select a video source to begin.', 'info');
+        };
+    </script>
+</body>
+</html>

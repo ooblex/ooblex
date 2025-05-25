@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ooblex WebRTC Video Processing Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .video-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .video-box h3 {
+            margin-top: 0;
+            color: #34495e;
+            text-align: center;
+        }
+        
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: #000;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .transform-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .transform-btn {
+            padding: 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .transform-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .transform-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-box h4 {
+            margin: 0 0 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .stat-box p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Ooblex WebRTC Video Processing Demo</h1>
+        
+        <div class="video-container">
+            <div class="video-box">
+                <h3>📷 Local Video</h3>
+                <video id="localVideo" autoplay muted playsinline></video>
+            </div>
+            
+            <div class="video-box">
+                <h3>🎨 Processed Video</h3>
+                <video id="remoteVideo" autoplay playsinline></video>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="btn-group">
+                <button id="startBtn" class="btn-primary">Start Camera</button>
+                <button id="connectBtn" class="btn-success" disabled>Connect</button>
+                <button id="disconnectBtn" class="btn-danger" disabled>Disconnect</button>
+                <button id="toggleBtn" class="btn-secondary" disabled>Toggle Processing</button>
+            </div>
+            
+            <div class="transform-options">
+                <div class="transform-btn active" data-transform="style_transfer">
+                    <div>🎨</div>
+                    <div>Style Transfer</div>
+                </div>
+                <div class="transform-btn" data-transform="background_blur">
+                    <div>🌫️</div>
+                    <div>Background Blur</div>
+                </div>
+                <div class="transform-btn" data-transform="face_swap">
+                    <div>😊</div>
+                    <div>Cartoon Effect</div>
+                </div>
+                <div class="transform-btn" data-transform="edge_detection">
+                    <div>🔲</div>
+                    <div>Edge Detection</div>
+                </div>
+            </div>
+            
+            <div id="status" class="status">
+                Ready to start
+            </div>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <h4>Connection</h4>
+                    <p id="connectionState">-</p>
+                </div>
+                <div class="stat-box">
+                    <h4>FPS</h4>
+                    <p id="fps">0</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Latency</h4>
+                    <p id="latency">0ms</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Processing</h4>
+                    <p id="processing">OFF</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SERVER_URL = window.location.protocol === 'https:' 
+            ? 'https://localhost:8443' 
+            : 'http://localhost:8443';
+        
+        // Global variables
+        let localStream = null;
+        let pc = null;
+        let dataChannel = null;
+        let processingEnabled = true;
+        let currentTransform = 'style_transfer';
+        let statsInterval = null;
+        
+        // UI Elements
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const startBtn = document.getElementById('startBtn');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const status = document.getElementById('status');
+        
+        // Transform buttons
+        document.querySelectorAll('.transform-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.transform-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTransform = btn.dataset.transform;
+                
+                if (dataChannel && dataChannel.readyState === 'open') {
+                    dataChannel.send(JSON.stringify({
+                        command: 'set_transform',
+                        type: currentTransform
+                    }));
+                }
+            });
+        });
+        
+        // Start camera
+        startBtn.addEventListener('click', async () => {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false
+                });
+                
+                localVideo.srcObject = localStream;
+                
+                startBtn.disabled = true;
+                connectBtn.disabled = false;
+                
+                updateStatus('Camera started', 'connected');
+            } catch (err) {
+                updateStatus(`Failed to access camera: ${err.message}`, 'error');
+            }
+        });
+        
+        // Connect to server
+        connectBtn.addEventListener('click', async () => {
+            try {
+                // Create peer connection
+                pc = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' }
+                    ]
+                });
+                
+                // Add local stream
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+                
+                // Handle remote stream
+                pc.ontrack = (event) => {
+                    if (event.streams && event.streams[0]) {
+                        remoteVideo.srcObject = event.streams[0];
+                    }
+                };
+                
+                // Create data channel for control
+                dataChannel = pc.createDataChannel('control', {
+                    ordered: true
+                });
+                
+                dataChannel.onopen = () => {
+                    console.log('Data channel opened');
+                    toggleBtn.disabled = false;
+                    
+                    // Set initial transform
+                    dataChannel.send(JSON.stringify({
+                        command: 'set_transform',
+                        type: currentTransform
+                    }));
+                };
+                
+                dataChannel.onmessage = (event) => {
+                    console.log('Data channel message:', event.data);
+                };
+                
+                // Handle connection state
+                pc.onconnectionstatechange = () => {
+                    updateConnectionState(pc.connectionState);
+                };
+                
+                // Create offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                // Send offer to server
+                const response = await fetch(`${SERVER_URL}/offer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: offer.type,
+                        sdp: offer.sdp
+                    })
+                });
+                
+                const answer = await response.json();
+                await pc.setRemoteDescription(new RTCSessionDescription(answer));
+                
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                
+                updateStatus('Connected to server', 'connected');
+                startStats();
+                
+            } catch (err) {
+                updateStatus(`Connection failed: ${err.message}`, 'error');
+            }
+        });
+        
+        // Disconnect
+        disconnectBtn.addEventListener('click', () => {
+            disconnect();
+        });
+        
+        // Toggle processing
+        toggleBtn.addEventListener('click', () => {
+            processingEnabled = !processingEnabled;
+            
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(JSON.stringify({
+                    command: 'toggle_transform',
+                    enabled: processingEnabled
+                }));
+            }
+            
+            document.getElementById('processing').textContent = processingEnabled ? 'ON' : 'OFF';
+            toggleBtn.textContent = processingEnabled ? 'Disable Processing' : 'Enable Processing';
+        });
+        
+        function disconnect() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
+            }
+            
+            remoteVideo.srcObject = null;
+            
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            toggleBtn.disabled = true;
+            
+            updateStatus('Disconnected', '');
+            stopStats();
+        }
+        
+        function updateStatus(message, className = '') {
+            status.textContent = message;
+            status.className = 'status';
+            if (className) {
+                status.classList.add(className);
+            }
+        }
+        
+        function updateConnectionState(state) {
+            document.getElementById('connectionState').textContent = state;
+            
+            if (state === 'failed' || state === 'closed') {
+                disconnect();
+            }
+        }
+        
+        function startStats() {
+            let frameCount = 0;
+            let lastTime = performance.now();
+            
+            statsInterval = setInterval(async () => {
+                if (pc && pc.connectionState === 'connected') {
+                    // Calculate FPS
+                    const currentTime = performance.now();
+                    const deltaTime = currentTime - lastTime;
+                    if (deltaTime > 1000) {
+                        const fps = Math.round((frameCount * 1000) / deltaTime);
+                        document.getElementById('fps').textContent = fps;
+                        frameCount = 0;
+                        lastTime = currentTime;
+                    }
+                    
+                    // Get stats
+                    const stats = await pc.getStats();
+                    stats.forEach(report => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                            frameCount = report.framesDecoded || 0;
+                        }
+                        
+                        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                            const latency = report.currentRoundTripTime ? 
+                                Math.round(report.currentRoundTripTime * 1000) : 0;
+                            document.getElementById('latency').textContent = `${latency}ms`;
+                        }
+                    });
+                }
+            }, 100);
+        }
+        
+        function stopStats() {
+            if (statsInterval) {
+                clearInterval(statsInterval);
+                statsInterval = null;
+            }
+            
+            document.getElementById('fps').textContent = '0';
+            document.getElementById('latency').textContent = '0ms';
+            document.getElementById('connectionState').textContent = '-';
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            disconnect();
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
