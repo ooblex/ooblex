@@ -1,6 +1,6 @@
 # Ooblex - Modern WebRTC AI Video Processing Platform
 
-[![CI/CD Pipeline](https://github.com/yourusername/ooblex/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/yourusername/ooblex/actions)
+[![CI/CD Pipeline](https://github.com/ooblex/ooblex/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/ooblex/ooblex/actions)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)](docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-brightgreen.svg)](k8s/)
@@ -29,7 +29,7 @@ Ooblex is a distributed, scalable platform for real-time AI video processing usi
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/ooblex.git
+git clone https://github.com/ooblex/ooblex.git
 cd ooblex
 ```
 
