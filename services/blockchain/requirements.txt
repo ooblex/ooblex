@@ -8,7 +8,7 @@ aiohttp==3.11.11
 aiofiles==24.1.0
 
 # Cryptography
-cryptography==44.0.0
+cryptography==44.0.1
 
 # Image processing for watermarking
 opencv-python==4.10.0.84
