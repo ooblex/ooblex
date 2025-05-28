@@ -11,7 +11,7 @@ factory-boy==3.3.0
 faker==22.0.0
 
 # Code quality
-black==23.12.1
+black==24.3.0
 flake8==7.0.0
 mypy==1.8.0
 isort==5.13.2
