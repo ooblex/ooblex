@@ -192,6 +192,15 @@ class StreamingServer:
             await self.stop_stream(stream_id)
             raise HTTPException(status_code=500, detail=str(e))
             
+    def _is_valid_url(self, url: str) -> bool:
+        """Validate the source URL"""
+        from urllib.parse import urlparse
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+        
     async def _start_hls_transcoding(self, stream_id: str, request: StreamRequest):
         """Start FFmpeg process for HLS transcoding"""
         stream_dir = OUTPUT_DIR / stream_id
@@ -262,6 +271,10 @@ class StreamingServer:
     async def _start_dash_transcoding(self, stream_id: str, request: StreamRequest):
         """Start FFmpeg process for DASH transcoding"""
         stream_dir = OUTPUT_DIR / stream_id
+        
+        # Validate source URL
+        if not self._is_valid_url(request.source_url):
+            raise HTTPException(status_code=400, detail="Invalid source URL")
         
         # Build FFmpeg command
         cmd = ['ffmpeg', '-hide_banner', '-loglevel', 'warning']
