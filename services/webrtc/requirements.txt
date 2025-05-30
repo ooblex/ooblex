@@ -8,7 +8,7 @@ prometheus-client==0.21.1
 python-json-logger==3.2.1
 pydantic==2.10.4
 pydantic-settings==2.7.0
-cryptography==44.0.0
+cryptography==44.0.1
 python-dotenv==1.0.1
 tenacity==9.0.0
 pyee==12.1.1
