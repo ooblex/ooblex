@@ -8,7 +8,7 @@ from multiprocessing import Process
 import time
 import sys
 import ssl
-import random
+import secrets
 import asyncio
 import websockets
 import json
@@ -394,7 +394,7 @@ def createRoom(uid):
 	msg['handle_id'] = plugins[uid]
 	body = {}
 	body['request'] = "create"
-	rooms[uid] = random.randint(1,10000)
+	rooms[uid] = secrets.randbelow(10000) + 1
 	body['room'] = rooms[uid]
 	body['publishers'] = 1
 	if uid in codec:
@@ -692,7 +692,7 @@ class ServerWorker:
 			self.replyRtsp(self.OK_200, seq)
 
 		elif requestType == "OPTIONS":
-			self.clientInfo['session'] = random.randint(100000, 999999)
+			self.clientInfo['session'] = secrets.randbelow(900000) + 100000
 			print('-'*60 + "\nOPTIONS Request Received\n" + '-'*60)
 			reply = "RTSP/1.0 200 OK\r\nCSeq: " + seq + "\nPublic: OPTIONS, RECORD, ANNOUNCE, DESCRIBE, SETUP, PLAY\r\nServer: Python RTSP server\r\n\r\n"
 			print(reply)

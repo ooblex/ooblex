@@ -54,6 +54,13 @@ blockchain_service: Optional[BlockchainService] = None
 ipfs_client: Optional[IPFSClient] = None
 
 
+# Helper functions
+def handle_error(error: Exception, user_message: str = "An error occurred processing your request") -> HTTPException:
+    """Safely handle errors without exposing sensitive information"""
+    logger.error(f"Error occurred: {error}", exc_info=True)
+    return HTTPException(status_code=500, detail=user_message)
+
+
 # Models
 class User(BaseModel):
     username: str
@@ -484,7 +491,7 @@ async def register_content(
     except Exception as e:
         request_count.labels(method="POST", endpoint="/blockchain/register", status="error").inc()
         logger.error(f"Failed to register content: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error(e, "Failed to register content")
 
 
 @app.post("/blockchain/verify", response_model=ContentVerificationResponse)
@@ -550,7 +557,7 @@ async def verify_content(
     except Exception as e:
         request_count.labels(method="POST", endpoint="/blockchain/verify", status="error").inc()
         logger.error(f"Failed to verify content: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error(e, "Failed to verify content")
 
 
 @app.get("/blockchain/provenance/{content_hash}")
@@ -585,7 +592,7 @@ async def get_provenance(
     except Exception as e:
         request_count.labels(method="GET", endpoint="/blockchain/provenance", status="error").inc()
         logger.error(f"Failed to get provenance: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error(e, "Failed to get provenance")
 
 
 @app.post("/blockchain/fingerprint")
@@ -616,7 +623,7 @@ async def generate_fingerprint(
     except Exception as e:
         request_count.labels(method="POST", endpoint="/blockchain/fingerprint", status="error").inc()
         logger.error(f"Failed to generate fingerprint: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise handle_error(e, "Failed to generate fingerprint")
 
 
 # WebSocket manager

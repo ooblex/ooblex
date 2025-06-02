@@ -2,21 +2,21 @@
 -r requirements.txt
 
 # Testing
-pytest==7.4.4
-pytest-asyncio==0.23.3
-pytest-cov==4.1.0
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
 pytest-mock==3.12.0
-httpx==0.26.0
+httpx==0.28.1
 factory-boy==3.3.0
-faker==22.0.0
+faker==33.1.0
 
 # Code quality
-black==25.1.0
+black==24.10.0
 flake8==7.0.0
 mypy==1.8.0
 isort==5.13.2
 pylint==3.0.3
-bandit==1.7.6
+bandit==1.8.0
 
 # Debugging
 ipython==8.19.0
@@ -24,11 +24,11 @@ ipdb==0.13.13
 rich==13.7.0
 
 # Documentation
-mkdocs==1.5.3
-mkdocs-material==9.5.4
-mkdocstrings[python]==0.24.0
+mkdocs==1.6.1
+mkdocs-material==9.5.49
+mkdocstrings[python]==0.27.0
 
 # Development tools
 watchdog==3.0.0
 python-dotenv==1.0.0
-pre-commit==3.6.0
+pre-commit==4.0.1

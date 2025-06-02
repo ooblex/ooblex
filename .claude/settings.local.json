@@ -6,8 +6,15 @@
       "Bash(rm:*)",
       "Bash(git checkout:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(gh api:*)",
+      "Bash(gh dependabot list:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh issue list:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }

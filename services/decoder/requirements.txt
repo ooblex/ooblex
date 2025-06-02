@@ -1,5 +1,5 @@
-aioredis==2.0.1
-aio-pika==9.0.5
-opencv-python==4.8.1.78
-numpy==1.24.3
-Pillow==10.3.0
+redis==5.2.1
+aio-pika==9.5.4
+opencv-python==4.10.0.84
+numpy==1.26.4
+Pillow==11.0.0
