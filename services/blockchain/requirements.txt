@@ -4,11 +4,11 @@ eth-account==0.14.0
 eth-utils==5.1.0
 
 # IPFS
-aiohttp==3.11.11
+aiohttp==3.12.14
 aiofiles==24.1.0
 
 # Cryptography
-cryptography==44.0.1
+cryptography==45.0.5
 
 # Image processing for watermarking
 opencv-python==4.10.0.84
