@@ -1,4 +1,4 @@
-aiohttp==3.11.11
+aiohttp==3.12.14
 aioredis==2.0.1
 opencv-python-headless==4.10.0.84
 Pillow==11.0.0

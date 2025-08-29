@@ -5,7 +5,7 @@ pydantic-settings==2.7.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.18
-aiohttp==3.11.11
+aiohttp==3.12.14
 websockets==14.1
 redis==5.2.1
 aio-pika==9.5.4
