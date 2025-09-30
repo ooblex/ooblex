@@ -1,4 +1,4 @@
-torch==2.7.1
+torch==2.8.0
 torchvision==0.20.1
 tensorflow==2.18.0
 onnx==1.17.0
