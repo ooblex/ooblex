@@ -146,42 +146,64 @@ Control autonomous systems with AI-augmented vision:
 
 ## 🎬 Quick Start
 
-### Option 1: Docker Compose (Recommended)
+### ⚡ Zero-Friction Demo (No Downloads!)
 
-**Run full WebRTC demo with AI effects:**
+**Run Ooblex in 30 seconds** with OpenCV effects (no AI models required):
 
 ```bash
 git clone https://github.com/ooblex/ooblex.git
 cd ooblex
 
+# Start services
+docker compose up -d redis rabbitmq
+
+# Run simple worker (no models needed!)
+python3 code/brain_simple.py &
+
+# Or use Docker
+./run-simple-demo.sh
+```
+
+**Available effects** (run instantly, no GPU needed):
+- 👤 Face Detection - Detect faces with bounding boxes
+- 🔒 Pixelate Faces - Privacy filter
+- 🎨 Cartoon - Comic book style
+- 🌫️ Background Blur - Blur effect
+- 📐 Edge Detection - Canny edges
+- ⚫ Grayscale, Sepia, Denoise, Mirror, Invert
+
+**All effects run 30-100+ FPS on CPU!**
+
+---
+
+### Option 1: Docker Compose (Full Stack)
+
+**Run full WebRTC demo:**
+
+```bash
 # Start everything (Redis, RabbitMQ, WebRTC gateway, ML workers)
 ./run-webrtc-demo.sh
 
 # Open browser
 open https://localhost/webrtc-demo.html
 
-# Allow webcam access, select effect, see AI-processed video
+# Allow webcam access, select effect, see real-time processing
 ```
 
 **What you'll see:**
 - Your webcam video on the left
-- AI-processed video on the right (real-time)
+- Processed video on the right (real-time!)
 - ~200-400ms latency
 - Multiple effects to choose from
 
-**Scale workers for more throughput:**
+**Scale workers:**
 ```bash
 docker compose -f docker-compose.webrtc.yml up -d --scale ml-worker=5
 ```
 
-### Option 2: Simple OpenCV Demo
+---
 
-```bash
-./run-simple-demo.sh
-# Processes test images through the AI pipeline
-```
-
-### Option 3: Bare Metal (Ubuntu)
+### Option 2: Bare Metal (Ubuntu)
 
 ```bash
 sudo chmod +x *.sh
@@ -191,19 +213,31 @@ sudo ./install_opencv.sh      # OpenCV 4.x
 sudo ./install_nginx.sh        # NGINX with SSL
 sudo ./install_redis.sh        # Redis 7.x
 sudo ./install_rabbitmq.sh     # RabbitMQ 3.x
-sudo ./install_janus.sh        # Janus WebRTC gateway
+sudo ./install_janus.sh        # Janus WebRTC gateway (optional)
 
 # Configure
 nano code/config.py  # Update Redis/RabbitMQ URLs and domain
 
-# Run services
+# Run simple demo (no models)
 cd code
 python3 api.py &
-python3 brain.py &
+python3 brain_simple.py &    # ← Simple effects, no downloads
 python3 decoder.py &
 python3 mjpeg.py &
-python3 webrtc.py &
 ```
+
+---
+
+### ⚠️ Note: Original AI Models Not Included
+
+The original 2020 TensorFlow face swap models are no longer available (too large for GitHub, links inactive).
+
+**You have two options:**
+
+1. **Use Simple Effects** (recommended for demo) - Works immediately with `brain_simple.py`
+2. **Add Your Own Models** - See [models/README.md](models/README.md) for how to add TensorFlow, PyTorch, ONNX, or other models
+
+The **simple effects demonstrate the full Ooblex pipeline** without requiring any model downloads!
 
 ---
 
@@ -266,27 +300,49 @@ Every push triggers:
 
 ---
 
-## 🎨 Available AI Effects
+## 🎨 Available Effects
 
-✅ **Face Detection** - MTCNN-based face detection
+### ✅ Built-In (No Models Required)
 
-✅ **Style Transfer** - Apply artistic styles
+These work immediately with `brain_simple.py`:
 
-✅ **Background Blur** - Depth-based blur
+| Effect | Performance | Description |
+|--------|-------------|-------------|
+| **Face Detection** | ~50 FPS | OpenCV Haar cascades |
+| **Pixelate Faces** | ~40 FPS | Privacy filter |
+| **Cartoon** | ~30 FPS | Bilateral filter + edges |
+| **Background Blur** | ~60 FPS | Gaussian blur |
+| **Edge Detection** | ~80 FPS | Canny edges |
+| **Grayscale** | ~100 FPS | B&W conversion |
+| **Sepia** | ~90 FPS | Vintage effect |
+| **Denoise** | ~25 FPS | Non-local means |
+| **Mirror** | ~120 FPS | Horizontal flip |
+| **Invert** | ~100 FPS | Color negative |
 
-✅ **Edge Detection** - Canny, Sobel
+**All run on CPU, no GPU needed!**
 
-✅ **Object Detection** - YOLO
+---
 
-✅ **Cartoon Filter** - Bilateral filtering
+### 🚀 Add Your Own Models
 
-**Supported ML Frameworks:**
+Want real AI models? See [models/README.md](models/README.md) for how to add:
+
+**Supported Frameworks:**
 - TensorFlow / TensorFlow Lite
 - PyTorch / TorchScript
-- ONNX Runtime
-- OpenVINO
-- TensorRT
+- ONNX Runtime (recommended)
+- OpenVINO (Intel CPUs)
+- TensorRT (NVIDIA GPUs)
 - MediaPipe
+
+**Popular Models:**
+- Face swap (InsightFace)
+- Style transfer (Fast Neural Style)
+- Object detection (YOLOv8)
+- Background removal (MediaPipe)
+- Pose estimation (MediaPipe)
+
+See examples in `models/README.md`
 
 ---
 

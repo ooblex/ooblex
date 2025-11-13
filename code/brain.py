@@ -1,8 +1,53 @@
+"""
+⚠️ ORIGINAL BRAIN.PY - MODEL FILES NOT INCLUDED
+
+The original TensorFlow face swap models are no longer available:
+- Too large to host on GitHub (~500MB each)
+- Original Google Drive / S3 links inactive
+- See GitHub issue: https://github.com/ooblex/ooblex/issues/
+
+OPTIONS:
+1. Use brain_simple.py instead (OpenCV effects, no models needed)
+2. Add your own models (see models/README.md)
+3. Download from community sources (not officially supported)
+
+This file is kept as a reference/template for the original architecture.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import os
-os.chdir("/root/ooblex/")
+import sys
+
+print("="*70)
+print("⚠️  WARNING: Original brain.py requires model files that are NOT included")
+print("="*70)
+print()
+print("The original TensorFlow face swap models are no longer available.")
+print("Model files needed (not in repo):")
+print("  - models/encoder256.h5")
+print("  - models/decoder256_A.h5")
+print("  - models/decoder256_B.h5")
+print("  - models/encoder256_ENCODER.h5")
+print("  - models/decoder256_A_TAYLOR.h5")
+print()
+print("ALTERNATIVES:")
+print("  1. Use brain_simple.py for OpenCV effects (no models needed)")
+print("     $ python3 code/brain_simple.py")
+print()
+print("  2. Add your own models - see models/README.md")
+print()
+print("  3. Train your own models - see ml_models/scripts/")
+print()
+print("="*70)
+print()
+
+# Uncomment below to use original code (requires model files)
+# NOTE: You'll need to download/create the model files first!
+
+"""
+# Original imports (commented out - models not available)
 import re
 import tensorflow as tf
 import numpy as np
@@ -11,7 +56,6 @@ import binascii
 import threading
 from multiprocessing import Process
 import time
-import sys
 import detect_face
 import ssl
 from amqpstorm import UriConnection
@@ -31,14 +75,13 @@ import redis
 
 global graph, r
 
+# Load models (files don't exist - need to download/create)
 encoder.load_weights( "models/encoder256.h5"   )
 decoder_A.load_weights( "models/decoder256_A.h5" )
 decoder_B.load_weights( "models/decoder256_B.h5" )
 
 encoder_swift.load_weights( "models/encoder256_ENCODER.h5"   )
 decoder_A_swift.load_weights( "models/decoder256_A_TAYLOR.h5" )
-#decoder_B_swift.load_weights( "models/decoder256_B_swift.h5" )
-
 
 graph = tf.get_default_graph()
 
