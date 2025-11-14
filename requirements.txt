@@ -17,7 +17,6 @@ alembic==1.14.0
 
 # Message Queue
 aio-pika==9.5.4
-amqpstorm==2.10.7
 
 # ML/AI Frameworks
 torch==2.5.1
