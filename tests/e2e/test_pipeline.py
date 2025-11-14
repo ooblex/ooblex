@@ -2,14 +2,16 @@
 End-to-end pipeline tests
 Tests the complete video processing pipeline from input to output
 """
-import pytest
+
 import asyncio
-import numpy as np
-import cv2
-import json
-import redis
-from unittest.mock import AsyncMock, patch
 import hashlib
+import json
+from unittest.mock import AsyncMock, patch
+
+import cv2
+import numpy as np
+import pytest
+import redis
 
 
 class TestVideoPipelineE2E:
@@ -19,7 +21,7 @@ class TestVideoPipelineE2E:
     def redis_client(self):
         """Create Redis client for testing"""
         try:
-            client = redis.Redis(host='localhost', port=6379, db=0)
+            client = redis.Redis(host="localhost", port=6379, db=0)
             client.ping()
             return client
         except (redis.ConnectionError, redis.exceptions.ConnectionError):
@@ -46,7 +48,9 @@ class TestVideoPipelineE2E:
     def test_frame_encoding_decoding(self, test_frame):
         """Test frame can be encoded and decoded"""
         # Encode as JPEG
-        success, encoded = cv2.imencode('.jpg', test_frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        success, encoded = cv2.imencode(
+            ".jpg", test_frame, [cv2.IMWRITE_JPEG_QUALITY, 95]
+        )
         assert success, "Failed to encode frame"
         assert len(encoded) > 0, "Encoded frame is empty"
 
@@ -63,7 +67,7 @@ class TestVideoPipelineE2E:
     def test_frame_storage_in_redis(self, redis_client, test_frame):
         """Test storing and retrieving frames from Redis"""
         # Encode frame
-        success, encoded = cv2.imencode('.jpg', test_frame)
+        success, encoded = cv2.imencode(".jpg", test_frame)
         assert success
 
         # Store in Redis
@@ -90,7 +94,7 @@ class TestVideoPipelineE2E:
             frame[:, :, 0] = (frame[:, :, 0] + i * 10) % 256
 
             # Encode and store
-            success, encoded = cv2.imencode('.jpg', frame)
+            success, encoded = cv2.imencode(".jpg", frame)
             assert success
 
             frame_id = f"test_frame_{i:03d}"
@@ -143,7 +147,7 @@ class TestVideoPipelineE2E:
 
         for i in range(num_frames):
             # Encode
-            success, encoded = cv2.imencode('.jpg', test_frame)
+            success, encoded = cv2.imencode(".jpg", test_frame)
             assert success
 
             # Store in Redis
@@ -164,7 +168,9 @@ class TestVideoPipelineE2E:
         elapsed = time.time() - start_time
         fps = num_frames / elapsed
 
-        print(f"\nPipeline throughput: {fps:.2f} FPS ({elapsed:.2f}s for {num_frames} frames)")
+        print(
+            f"\nPipeline throughput: {fps:.2f} FPS ({elapsed:.2f}s for {num_frames} frames)"
+        )
 
         # Should be able to handle at least 10 FPS on slow hardware
         assert fps > 10, f"Pipeline too slow: {fps:.2f} FPS"
@@ -180,11 +186,7 @@ class TestTaskOrchestration:
         redis_id = "frame_123"
 
         # Create task message (original format)
-        task_msg = {
-            'streamKey': stream_key,
-            'task': task_type,
-            'redisID': redis_id
-        }
+        task_msg = {"streamKey": stream_key, "task": task_type, "redisID": redis_id}
 
         # Verify JSON serialization
         json_str = json.dumps(task_msg)
@@ -192,9 +194,9 @@ class TestTaskOrchestration:
 
         # Verify can be decoded
         decoded = json.loads(json_str)
-        assert decoded['streamKey'] == stream_key
-        assert decoded['task'] == task_type
-        assert decoded['redisID'] == redis_id
+        assert decoded["streamKey"] == stream_key
+        assert decoded["task"] == task_type
+        assert decoded["redisID"] == redis_id
 
     def test_multiple_task_types(self):
         """Test different task types"""
@@ -203,20 +205,16 @@ class TestTaskOrchestration:
             "TrumpOn",
             "StyleTransfer",
             "BackgroundBlur",
-            "ObjectDetection"
+            "ObjectDetection",
         ]
 
         for task_type in task_types:
-            task_msg = {
-                'streamKey': 'test',
-                'task': task_type,
-                'redisID': 'frame_001'
-            }
+            task_msg = {"streamKey": "test", "task": task_type, "redisID": "frame_001"}
 
             json_str = json.dumps(task_msg)
             decoded = json.loads(json_str)
 
-            assert decoded['task'] == task_type
+            assert decoded["task"] == task_type
 
 
 class TestDataIntegrity:
@@ -232,7 +230,7 @@ class TestDataIntegrity:
         original_hash = hashlib.md5(frame.tobytes()).hexdigest()
 
         # Encode as PNG (lossless)
-        success, encoded = cv2.imencode('.png', frame)
+        success, encoded = cv2.imencode(".png", frame)
         assert success
 
         # Decode
@@ -258,12 +256,16 @@ class TestDataIntegrity:
             frame = np.random.randint(0, 255, (height, width, 3), dtype=np.uint8)
 
             # Encode/decode
-            success, encoded = cv2.imencode('.jpg', frame)
+            success, encoded = cv2.imencode(".jpg", frame)
             assert success
 
             decoded = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
             assert decoded is not None
-            assert decoded.shape == (height, width, 3), f"Shape mismatch for {width}x{height}"
+            assert decoded.shape == (
+                height,
+                width,
+                3,
+            ), f"Shape mismatch for {width}x{height}"
 
 
 class TestErrorHandling:
@@ -272,13 +274,19 @@ class TestErrorHandling:
     def test_corrupted_frame_data(self):
         """Test handling of corrupted frame data"""
         # Create invalid encoded data
-        corrupted_data = b'\xff\xd8\xff\xe0\x00\x10\x4a\x46\x49\x46'  # Invalid JPEG header
+        corrupted_data = (
+            b"\xff\xd8\xff\xe0\x00\x10\x4a\x46\x49\x46"  # Invalid JPEG header
+        )
 
         # Try to decode
-        decoded = cv2.imdecode(np.frombuffer(corrupted_data, np.uint8), cv2.IMREAD_COLOR)
+        decoded = cv2.imdecode(
+            np.frombuffer(corrupted_data, np.uint8), cv2.IMREAD_COLOR
+        )
 
         # Should return None or empty
-        assert decoded is None or decoded.size == 0, "Should fail to decode corrupted data"
+        assert (
+            decoded is None or decoded.size == 0
+        ), "Should fail to decode corrupted data"
 
     def test_invalid_frame_dimensions(self):
         """Test handling of invalid dimensions"""
@@ -290,7 +298,7 @@ class TestErrorHandling:
     def test_redis_key_not_found(self):
         """Test handling of missing Redis keys"""
         try:
-            client = redis.Redis(host='localhost', port=6379, db=0)
+            client = redis.Redis(host="localhost", port=6379, db=0)
             client.ping()
         except redis.ConnectionError:
             pytest.skip("Redis not available")
@@ -311,7 +319,7 @@ class TestPerformanceMetrics:
 
         # Measure encoding latency
         start = time.time()
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         encode_latency = time.time() - start
 
         assert success
@@ -338,7 +346,7 @@ class TestPerformanceMetrics:
         print(f"\nRaw frame size: {raw_size / 1024 / 1024:.2f} MB")
 
         # Encode
-        success, encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        success, encoded = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
         assert success
 
         encoded_size = len(encoded)

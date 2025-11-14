@@ -2,11 +2,13 @@
 Installation validation tests
 Tests that core dependencies and system requirements are properly installed
 """
-import pytest
-import sys
+
 import importlib
-import subprocess
 import os
+import subprocess
+import sys
+
+import pytest
 
 
 class TestPythonVersion:
@@ -14,21 +16,27 @@ class TestPythonVersion:
 
     def test_python_version(self):
         """Verify Python 3.11+ is being used"""
-        assert sys.version_info >= (3, 11), f"Python 3.11+ required, got {sys.version_info}"
+        assert sys.version_info >= (
+            3,
+            11,
+        ), f"Python 3.11+ required, got {sys.version_info}"
 
 
 class TestCoreDependencies:
     """Test that core Python dependencies are installed"""
 
-    @pytest.mark.parametrize("module_name", [
-        "fastapi",
-        "uvicorn",
-        "redis",
-        "aio_pika",
-        "cv2",  # opencv-python
-        "numpy",
-        "pydantic",
-    ])
+    @pytest.mark.parametrize(
+        "module_name",
+        [
+            "fastapi",
+            "uvicorn",
+            "redis",
+            "aio_pika",
+            "cv2",  # opencv-python
+            "numpy",
+            "pydantic",
+        ],
+    )
     def test_core_module_imports(self, module_name):
         """Test that core modules can be imported"""
         try:
@@ -39,18 +47,23 @@ class TestCoreDependencies:
     def test_opencv_version(self):
         """Verify OpenCV is installed and functional"""
         import cv2
+
         assert hasattr(cv2, "__version__"), "OpenCV version not found"
-        major_version = int(cv2.__version__.split('.')[0])
+        major_version = int(cv2.__version__.split(".")[0])
         assert major_version >= 4, f"OpenCV 4.x+ required, got {cv2.__version__}"
 
     def test_numpy_version(self):
         """Verify NumPy is installed and functional"""
         import numpy as np
+
         assert hasattr(np, "__version__"), "NumPy version not found"
-        version_parts = np.__version__.split('.')
+        version_parts = np.__version__.split(".")
         major = int(version_parts[0])
         minor = int(version_parts[1])
-        assert (major, minor) >= (1, 24), f"NumPy 1.24+ recommended, got {np.__version__}"
+        assert (major, minor) >= (
+            1,
+            24,
+        ), f"NumPy 1.24+ recommended, got {np.__version__}"
 
 
 class TestOptionalDependencies:
@@ -60,6 +73,7 @@ class TestOptionalDependencies:
         """Test TensorFlow import (optional for ML workers)"""
         try:
             import tensorflow as tf
+
             assert hasattr(tf, "__version__")
             print(f"TensorFlow {tf.__version__} installed")
         except ImportError:
@@ -69,6 +83,7 @@ class TestOptionalDependencies:
         """Test PyTorch import (optional for ML workers)"""
         try:
             import torch
+
             assert hasattr(torch, "__version__")
             print(f"PyTorch {torch.__version__} installed")
         except ImportError:
@@ -79,6 +94,7 @@ class TestOptionalDependencies:
         try:
             import onnx
             import onnxruntime
+
             assert hasattr(onnx, "__version__")
             print(f"ONNX {onnx.__version__} installed")
         except ImportError:
@@ -88,19 +104,19 @@ class TestOptionalDependencies:
 class TestSystemCommands:
     """Test that system-level commands are available"""
 
-    @pytest.mark.parametrize("command", [
-        "python3",
-        "pip3",
-        "docker",
-    ])
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "python3",
+            "pip3",
+            "docker",
+        ],
+    )
     def test_command_exists(self, command):
         """Test that required system commands exist"""
         try:
             result = subprocess.run(
-                ["which", command],
-                capture_output=True,
-                text=True,
-                check=False
+                ["which", command], capture_output=True, text=True, check=False
             )
             assert result.returncode == 0, f"Command '{command}' not found in PATH"
         except Exception as e:
@@ -114,7 +130,7 @@ class TestSystemCommands:
                 ["docker", "compose", "version"],
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
             if result.returncode == 0:
                 return
@@ -124,9 +140,11 @@ class TestSystemCommands:
                 ["docker-compose", "--version"],
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
-            assert result.returncode == 0, "Neither 'docker compose' nor 'docker-compose' found"
+            assert (
+                result.returncode == 0
+            ), "Neither 'docker compose' nor 'docker-compose' found"
         except Exception as e:
             pytest.skip(f"Docker compose check failed: {e}")
 
@@ -205,6 +223,7 @@ class TestConfigurationFiles:
     def test_docker_compose_files_valid(self):
         """Verify docker-compose files are valid YAML"""
         import yaml
+
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         compose_files = [
@@ -217,7 +236,7 @@ class TestConfigurationFiles:
             full_path = os.path.join(base_dir, compose_file)
             if os.path.isfile(full_path):
                 try:
-                    with open(full_path, 'r') as f:
+                    with open(full_path, "r") as f:
                         yaml.safe_load(f)
                 except yaml.YAMLError as e:
                     pytest.fail(f"Invalid YAML in {compose_file}: {e}")
@@ -235,7 +254,9 @@ class TestEnvironmentSetup:
 
         for var_name, default_value in recommended_vars.items():
             value = os.getenv(var_name, default_value)
-            assert value, f"Environment variable {var_name} not set (using default: {default_value})"
+            assert (
+                value
+            ), f"Environment variable {var_name} not set (using default: {default_value})"
 
 
 if __name__ == "__main__":

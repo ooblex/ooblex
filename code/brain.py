@@ -14,15 +14,14 @@ OPTIONS:
 This file is kept as a reference/template for the original architecture.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 import os
 import sys
 
-print("="*70)
+print("=" * 70)
 print("⚠️  WARNING: Original brain.py requires model files that are NOT included")
-print("="*70)
+print("=" * 70)
 print()
 print("The original TensorFlow face swap models are no longer available.")
 print("Model files needed (not in repo):")
@@ -40,7 +39,7 @@ print("  2. Add your own models - see models/README.md")
 print()
 print("  3. Train your own models - see ml_models/scripts/")
 print()
-print("="*70)
+print("=" * 70)
 print()
 
 # Uncomment below to use original code (requires model files)
@@ -293,4 +292,3 @@ mainChannel_in.basic.consume(processMessage, 'tf-controller', no_ack=False)
 mainChannel_in.basic.qos( 1 , global_ = True )
 mainChannel_in.start_consuming()
 """
-

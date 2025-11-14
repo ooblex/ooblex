@@ -17,38 +17,41 @@ Pipeline:
 Redis (audio chunks) → This Worker → Whisper → RabbitMQ (text results)
 """
 
+import json
+import logging
 import os
 import sys
-import json
 import time
-import logging
-import numpy as np
-import redis
-import pika
-from io import BytesIO
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from io import BytesIO
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pika
+import redis
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Configuration
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
-RABBITMQ_URL = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672")
 
 # Whisper Configuration
-WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'base')  # tiny, base, small, medium, large
-WHISPER_DEVICE = os.getenv('WHISPER_DEVICE', 'auto')  # auto, cpu, cuda
-WHISPER_COMPUTE_TYPE = os.getenv('WHISPER_COMPUTE_TYPE', 'default')  # default, int8, float16
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")  # tiny, base, small, medium, large
+WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "auto")  # auto, cpu, cuda
+WHISPER_COMPUTE_TYPE = os.getenv(
+    "WHISPER_COMPUTE_TYPE", "default"
+)  # default, int8, float16
 
 
 @dataclass
 class AudioChunk:
     """Audio chunk metadata"""
+
     chunk_id: str
     stream_id: str
     timestamp: int
@@ -73,10 +76,10 @@ class WhisperWorker:
         self.rabbit_channel = None
         self.whisper_model = None
         self.stats = {
-            'chunks_processed': 0,
-            'total_audio_duration': 0,
-            'total_processing_time': 0,
-            'errors': 0,
+            "chunks_processed": 0,
+            "total_audio_duration": 0,
+            "total_processing_time": 0,
+            "errors": 0,
         }
 
     def initialize(self):
@@ -94,8 +97,8 @@ class WhisperWorker:
         parameters = pika.URLParameters(RABBITMQ_URL)
         self.rabbit_connection = pika.BlockingConnection(parameters)
         self.rabbit_channel = self.rabbit_connection.channel()
-        self.rabbit_channel.queue_declare(queue='audio-chunks', durable=False)
-        self.rabbit_channel.queue_declare(queue='stt-results', durable=False)
+        self.rabbit_channel.queue_declare(queue="audio-chunks", durable=False)
+        self.rabbit_channel.queue_declare(queue="stt-results", durable=False)
         logger.info("RabbitMQ connected")
 
         # Load Whisper model
@@ -113,21 +116,24 @@ class WhisperWorker:
 
             # Determine device
             device = WHISPER_DEVICE
-            if device == 'auto':
+            if device == "auto":
                 import torch
-                device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+                device = "cuda" if torch.cuda.is_available() else "cpu"
 
             # Determine compute type
             compute_type = WHISPER_COMPUTE_TYPE
-            if compute_type == 'default':
-                compute_type = 'float16' if device == 'cuda' else 'int8'
+            if compute_type == "default":
+                compute_type = "float16" if device == "cuda" else "int8"
 
-            logger.info(f"Using faster-whisper with device={device}, compute_type={compute_type}")
+            logger.info(
+                f"Using faster-whisper with device={device}, compute_type={compute_type}"
+            )
             self.whisper_model = WhisperModel(
                 WHISPER_MODEL,
                 device=device,
                 compute_type=compute_type,
-                download_root=os.getenv('WHISPER_CACHE_DIR', None)
+                download_root=os.getenv("WHISPER_CACHE_DIR", None),
             )
             self.use_faster_whisper = True
 
@@ -135,6 +141,7 @@ class WhisperWorker:
             logger.warning("faster-whisper not found, falling back to openai-whisper")
             try:
                 import whisper
+
                 self.whisper_model = whisper.load_model(WHISPER_MODEL)
                 self.use_faster_whisper = False
             except ImportError:
@@ -152,14 +159,12 @@ class WhisperWorker:
                 ch.basic_ack(delivery_tag=method.delivery_tag)
             except Exception as e:
                 logger.error(f"Error processing audio chunk: {e}", exc_info=True)
-                self.stats['errors'] += 1
+                self.stats["errors"] += 1
                 ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
         self.rabbit_channel.basic_qos(prefetch_count=1)
         self.rabbit_channel.basic_consume(
-            queue='audio-chunks',
-            on_message_callback=callback,
-            auto_ack=False
+            queue="audio-chunks", on_message_callback=callback, auto_ack=False
         )
 
         logger.info("Waiting for audio chunks...")
@@ -174,9 +179,9 @@ class WhisperWorker:
         start_time = time.time()
 
         # Parse message
-        message = json.loads(message_body.decode('utf-8'))
-        chunk_id = message['chunkID']
-        metadata = message['metadata']
+        message = json.loads(message_body.decode("utf-8"))
+        chunk_id = message["chunkID"]
+        metadata = message["metadata"]
 
         logger.info(f"Processing audio chunk: {chunk_id}")
 
@@ -189,20 +194,20 @@ class WhisperWorker:
         # Create AudioChunk object
         audio_chunk = AudioChunk(
             chunk_id=chunk_id,
-            stream_id=metadata['streamID'],
-            timestamp=metadata['timestamp'],
-            sample_rate=metadata['sampleRate'],
-            channels=metadata['channels'],
-            format=metadata['format'],
-            duration_ms=metadata['durationMs'],
-            bytes=metadata['bytes'],
-            data=audio_data
+            stream_id=metadata["streamID"],
+            timestamp=metadata["timestamp"],
+            sample_rate=metadata["sampleRate"],
+            channels=metadata["channels"],
+            format=metadata["format"],
+            duration_ms=metadata["durationMs"],
+            bytes=metadata["bytes"],
+            data=audio_data,
         )
 
         # Transcribe audio
         result = self.transcribe_audio(audio_chunk)
 
-        if result and result['text'].strip():
+        if result and result["text"].strip():
             # Publish result to RabbitMQ
             self.publish_result(audio_chunk, result)
 
@@ -214,12 +219,12 @@ class WhisperWorker:
             )
 
             # Update stats
-            self.stats['chunks_processed'] += 1
-            self.stats['total_audio_duration'] += audio_chunk.duration_ms / 1000
-            self.stats['total_processing_time'] += processing_time
+            self.stats["chunks_processed"] += 1
+            self.stats["total_audio_duration"] += audio_chunk.duration_ms / 1000
+            self.stats["total_processing_time"] += processing_time
 
             # Log stats periodically
-            if self.stats['chunks_processed'] % 10 == 0:
+            if self.stats["chunks_processed"] % 10 == 0:
                 self.log_stats()
         else:
             logger.debug(f"No speech detected in chunk {chunk_id}")
@@ -249,12 +254,14 @@ class WhisperWorker:
 
         return float32_array
 
-    def transcribe_faster_whisper(self, audio_array: np.ndarray) -> Optional[Dict[str, Any]]:
+    def transcribe_faster_whisper(
+        self, audio_array: np.ndarray
+    ) -> Optional[Dict[str, Any]]:
         """Transcribe using faster-whisper"""
         segments, info = self.whisper_model.transcribe(
             audio_array,
             beam_size=5,
-            language='en',  # Set to None for auto-detection
+            language="en",  # Set to None for auto-detection
             vad_filter=True,  # Voice Activity Detection
             vad_parameters=dict(
                 threshold=0.5,
@@ -276,68 +283,76 @@ class WhisperWorker:
         if segment_count == 0:
             return None
 
-        text = ' '.join(text_parts).strip()
-        confidence = np.exp(avg_confidence / segment_count) if segment_count > 0 else 0.0
+        text = " ".join(text_parts).strip()
+        confidence = (
+            np.exp(avg_confidence / segment_count) if segment_count > 0 else 0.0
+        )
 
         return {
-            'text': text,
-            'language': info.language,
-            'language_probability': info.language_probability,
-            'confidence': confidence,
-            'segments': segment_count,
+            "text": text,
+            "language": info.language,
+            "language_probability": info.language_probability,
+            "confidence": confidence,
+            "segments": segment_count,
         }
 
-    def transcribe_openai_whisper(self, audio_array: np.ndarray) -> Optional[Dict[str, Any]]:
+    def transcribe_openai_whisper(
+        self, audio_array: np.ndarray
+    ) -> Optional[Dict[str, Any]]:
         """Transcribe using openai-whisper"""
         import whisper
 
         result = self.whisper_model.transcribe(
             audio_array,
-            language='en',
+            language="en",
             fp16=False,  # Use FP32 for CPU
         )
 
-        text = result['text'].strip()
+        text = result["text"].strip()
         if not text:
             return None
 
         return {
-            'text': text,
-            'language': result.get('language', 'en'),
-            'language_probability': 1.0,
-            'confidence': 0.8,  # openai-whisper doesn't provide confidence
-            'segments': len(result.get('segments', [])),
+            "text": text,
+            "language": result.get("language", "en"),
+            "language_probability": 1.0,
+            "confidence": 0.8,  # openai-whisper doesn't provide confidence
+            "segments": len(result.get("segments", [])),
         }
 
     def publish_result(self, audio_chunk: AudioChunk, result: Dict[str, Any]):
         """Publish STT result to RabbitMQ"""
         message = {
-            'streamID': audio_chunk.stream_id,
-            'chunkID': audio_chunk.chunk_id,
-            'timestamp': audio_chunk.timestamp,
-            'text': result['text'],
-            'language': result['language'],
-            'confidence': result['confidence'],
-            'segments': result['segments'],
-            'audioDurationMs': audio_chunk.duration_ms,
+            "streamID": audio_chunk.stream_id,
+            "chunkID": audio_chunk.chunk_id,
+            "timestamp": audio_chunk.timestamp,
+            "text": result["text"],
+            "language": result["language"],
+            "confidence": result["confidence"],
+            "segments": result["segments"],
+            "audioDurationMs": audio_chunk.duration_ms,
         }
 
         self.rabbit_channel.basic_publish(
-            exchange='',
-            routing_key='stt-results',
-            body=json.dumps(message).encode('utf-8'),
+            exchange="",
+            routing_key="stt-results",
+            body=json.dumps(message).encode("utf-8"),
             properties=pika.BasicProperties(
                 delivery_mode=1,  # Non-persistent
-            )
+            ),
         )
 
     def log_stats(self):
         """Log worker statistics"""
-        if self.stats['chunks_processed'] == 0:
+        if self.stats["chunks_processed"] == 0:
             return
 
-        avg_processing_time = self.stats['total_processing_time'] / self.stats['chunks_processed']
-        rtf = avg_processing_time / (self.stats['total_audio_duration'] / self.stats['chunks_processed'])
+        avg_processing_time = (
+            self.stats["total_processing_time"] / self.stats["chunks_processed"]
+        )
+        rtf = avg_processing_time / (
+            self.stats["total_audio_duration"] / self.stats["chunks_processed"]
+        )
 
         logger.info(
             f"Stats: {self.stats['chunks_processed']} chunks processed, "
@@ -375,5 +390,5 @@ def main():
         worker.cleanup()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -2,11 +2,13 @@
 WebSocket integration tests
 Tests the WebSocket API with real connections
 """
-import pytest
+
 import asyncio
 import json
-import websockets
 from unittest.mock import AsyncMock, patch
+
+import pytest
+import websockets
 
 
 class TestWebSocketConnection:
@@ -19,8 +21,7 @@ class TestWebSocketConnection:
         # It will be skipped if the server is not available
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client",
-                timeout=5
+                "ws://localhost:8800/ws/test_client", timeout=5
             ) as websocket:
                 # Connection successful
                 assert websocket.open
@@ -32,8 +33,7 @@ class TestWebSocketConnection:
         """Test ping-pong message pattern"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client",
-                timeout=5
+                "ws://localhost:8800/ws/test_client", timeout=5
             ) as websocket:
                 # Send ping message
                 ping_msg = json.dumps({"type": "ping"})
@@ -53,8 +53,7 @@ class TestWebSocketConnection:
         """Test 'start process' command (original API pattern)"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client",
-                timeout=5
+                "ws://localhost:8800/ws/test_client", timeout=5
             ) as websocket:
                 # Send start process command
                 stream_key = "test_stream_123"
@@ -72,7 +71,9 @@ class TestWebSocketConnection:
 
                 # Check for expected responses
                 response_text = " ".join(responses)
-                assert "Starting Video Processing" in response_text or len(responses) > 0
+                assert (
+                    "Starting Video Processing" in response_text or len(responses) > 0
+                )
         except (ConnectionRefusedError, OSError, asyncio.TimeoutError):
             pytest.skip("API server not running")
 
@@ -81,8 +82,7 @@ class TestWebSocketConnection:
         """Test task command format (task:streamKey)"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client",
-                timeout=5
+                "ws://localhost:8800/ws/test_client", timeout=5
             ) as websocket:
                 # Send task command
                 task_command = "FaceOn:test_stream_456"
@@ -106,15 +106,13 @@ class TestWebSocketResilience:
         try:
             # First connection
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client_1",
-                timeout=5
+                "ws://localhost:8800/ws/test_client_1", timeout=5
             ) as ws1:
                 assert ws1.open
 
             # Second connection with same client ID
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client_1",
-                timeout=5
+                "ws://localhost:8800/ws/test_client_1", timeout=5
             ) as ws2:
                 assert ws2.open
         except (ConnectionRefusedError, OSError, asyncio.TimeoutError):
@@ -127,8 +125,7 @@ class TestWebSocketResilience:
             connections = []
             for i in range(3):
                 ws = await websockets.connect(
-                    f"ws://localhost:8800/ws/test_client_{i}",
-                    timeout=5
+                    f"ws://localhost:8800/ws/test_client_{i}", timeout=5
                 )
                 connections.append(ws)
 
@@ -152,8 +149,7 @@ class TestWebSocketResilience:
         """Test handling of invalid messages"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_client",
-                timeout=5
+                "ws://localhost:8800/ws/test_client", timeout=5
             ) as websocket:
                 # Send invalid message
                 await websocket.send("invalid message format")
@@ -179,14 +175,12 @@ class TestWebSocketSubscription:
         """Test subscribing to a stream"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/test_subscriber",
-                timeout=5
+                "ws://localhost:8800/ws/test_subscriber", timeout=5
             ) as websocket:
                 # Subscribe to stream
-                subscribe_msg = json.dumps({
-                    "type": "subscribe",
-                    "stream_token": "test_stream_789"
-                })
+                subscribe_msg = json.dumps(
+                    {"type": "subscribe", "stream_token": "test_stream_789"}
+                )
                 await websocket.send(subscribe_msg)
 
                 # Should get subscription confirmation
@@ -211,8 +205,7 @@ class TestWebSocketStressTest:
         """Test sending many messages rapidly"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/stress_test_client",
-                timeout=5
+                "ws://localhost:8800/ws/stress_test_client", timeout=5
             ) as websocket:
                 # Send 100 ping messages rapidly
                 for i in range(100):
@@ -242,8 +235,7 @@ class TestWebSocketStressTest:
         """Test keeping connection open for extended period"""
         try:
             async with websockets.connect(
-                "ws://localhost:8800/ws/long_lived_client",
-                timeout=5
+                "ws://localhost:8800/ws/long_lived_client", timeout=5
             ) as websocket:
                 # Keep connection open for 10 seconds, sending pings
                 for i in range(10):

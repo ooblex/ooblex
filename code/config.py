@@ -7,5 +7,3 @@ RABBITMQ_CONFIG = {
 }
 
 DOMAIN_CONFIG = {"domain": os.getenv("DOMAIN", "api.ooblex.com")}
-
-

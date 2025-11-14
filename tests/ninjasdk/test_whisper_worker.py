@@ -2,17 +2,18 @@
 Unit tests for Whisper STT Worker
 """
 
-import unittest
-import numpy as np
 import json
-from unittest.mock import Mock, patch, MagicMock
-import sys
 import os
+import sys
+import unittest
+from unittest.mock import MagicMock, Mock, patch
+
+import numpy as np
 
 # Add code directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../code'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../code"))
 
-from whisper_worker import WhisperWorker, AudioChunk
+from whisper_worker import AudioChunk, WhisperWorker
 
 
 class TestAudioConversion(unittest.TestCase):
@@ -60,8 +61,8 @@ class TestWhisperWorker(unittest.TestCase):
         """Set up test fixtures"""
         self.worker = WhisperWorker()
 
-    @patch('whisper_worker.redis')
-    @patch('whisper_worker.pika')
+    @patch("whisper_worker.redis")
+    @patch("whisper_worker.pika")
     def test_initialization(self, mock_pika, mock_redis):
         """Test worker initialization"""
         mock_redis_client = MagicMock()
@@ -77,31 +78,31 @@ class TestWhisperWorker(unittest.TestCase):
     def test_audio_chunk_creation(self):
         """Test AudioChunk dataclass"""
         chunk = AudioChunk(
-            chunk_id='test-chunk-123',
-            stream_id='test-stream',
+            chunk_id="test-chunk-123",
+            stream_id="test-stream",
             timestamp=1234567890,
             sample_rate=16000,
             channels=1,
-            format='pcm16',
+            format="pcm16",
             duration_ms=1000.0,
             bytes=32000,
-            data=b'test_data'
+            data=b"test_data",
         )
 
-        self.assertEqual(chunk.chunk_id, 'test-chunk-123')
-        self.assertEqual(chunk.stream_id, 'test-stream')
+        self.assertEqual(chunk.chunk_id, "test-chunk-123")
+        self.assertEqual(chunk.stream_id, "test-stream")
         self.assertEqual(chunk.sample_rate, 16000)
         self.assertEqual(chunk.channels, 1)
 
-    @patch.object(WhisperWorker, 'transcribe_faster_whisper')
+    @patch.object(WhisperWorker, "transcribe_faster_whisper")
     def test_transcription_mock(self, mock_transcribe):
         """Test transcription with mock"""
         mock_transcribe.return_value = {
-            'text': 'Hello world',
-            'language': 'en',
-            'language_probability': 0.99,
-            'confidence': 0.95,
-            'segments': 1,
+            "text": "Hello world",
+            "language": "en",
+            "language_probability": 0.99,
+            "confidence": 0.95,
+            "segments": 1,
         }
 
         audio_array = np.random.randn(16000).astype(np.float32)
@@ -109,20 +110,20 @@ class TestWhisperWorker(unittest.TestCase):
 
         result = self.worker.transcribe_audio(
             AudioChunk(
-                chunk_id='test',
-                stream_id='test',
+                chunk_id="test",
+                stream_id="test",
                 timestamp=0,
                 sample_rate=16000,
                 channels=1,
-                format='pcm16',
+                format="pcm16",
                 duration_ms=1000,
                 bytes=32000,
-                data=audio_array.tobytes()
+                data=audio_array.tobytes(),
             )
         )
 
-        self.assertEqual(result['text'], 'Hello world')
-        self.assertEqual(result['confidence'], 0.95)
+        self.assertEqual(result["text"], "Hello world")
+        self.assertEqual(result["confidence"], 0.95)
 
 
 class TestIntegration(unittest.TestCase):
@@ -135,5 +136,5 @@ class TestIntegration(unittest.TestCase):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

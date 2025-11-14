@@ -1,29 +1,31 @@
 """
 Global pytest configuration and fixtures
 """
+
 import asyncio
 import os
-from typing import AsyncGenerator, Generator
-import pytest
-import pytest_asyncio
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from testcontainers.postgres import PostgresContainer
-from testcontainers.redis import RedisContainer
-from testcontainers.rabbitmq import RabbitMQContainer
-import redis.asyncio as redis
-from aio_pika import connect_robust
 
 # Add project root to path
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services'))
+from typing import AsyncGenerator, Generator
 
-from api.main import app
+import pytest
+import pytest_asyncio
+import redis.asyncio as redis
+from aio_pika import connect_robust
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from testcontainers.postgres import PostgresContainer
+from testcontainers.rabbitmq import RabbitMQContainer
+from testcontainers.redis import RedisContainer
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services"))
+
 from api.config import settings
-
+from api.main import app
 
 # Override event loop policy for Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
@@ -60,18 +62,21 @@ def rabbitmq_container():
 async def test_db(postgres_container):
     """Create test database"""
     # Update settings with test database URL
-    settings.database_url = postgres_container.get_connection_url().replace("psycopg2", "asyncpg")
-    
+    settings.database_url = postgres_container.get_connection_url().replace(
+        "psycopg2", "asyncpg"
+    )
+
     # Create engine and tables
     engine = create_async_engine(settings.database_url)
-    
+
     # Import models and create tables
     from api.models import Base
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     yield engine
-    
+
     # Cleanup
     await engine.dispose()
 
@@ -80,11 +85,9 @@ async def test_db(postgres_container):
 async def db_session(test_db) -> AsyncGenerator[AsyncSession, None]:
     """Create a test database session"""
     async_session = async_sessionmaker(
-        test_db,
-        class_=AsyncSession,
-        expire_on_commit=False
+        test_db, class_=AsyncSession, expire_on_commit=False
     )
-    
+
     async with async_session() as session:
         yield session
         await session.rollback()
@@ -94,32 +97,34 @@ async def db_session(test_db) -> AsyncGenerator[AsyncSession, None]:
 async def redis_client(redis_container):
     """Create Redis client for testing"""
     settings.redis_url = f"redis://localhost:{redis_container.get_exposed_port(6379)}"
-    
+
     client = await redis.from_url(
-        settings.redis_url,
-        encoding="utf-8",
-        decode_responses=True
+        settings.redis_url, encoding="utf-8", decode_responses=True
     )
-    
+
     yield client
-    
+
     await client.close()
 
 
 @pytest_asyncio.fixture(scope="session")
 async def rabbitmq_connection(rabbitmq_container):
     """Create RabbitMQ connection for testing"""
-    settings.rabbitmq_url = f"amqp://guest:guest@localhost:{rabbitmq_container.get_exposed_port(5672)}"
-    
+    settings.rabbitmq_url = (
+        f"amqp://guest:guest@localhost:{rabbitmq_container.get_exposed_port(5672)}"
+    )
+
     connection = await connect_robust(settings.rabbitmq_url)
-    
+
     yield connection
-    
+
     await connection.close()
 
 
 @pytest_asyncio.fixture
-async def api_client(test_db, redis_client, rabbitmq_connection) -> AsyncGenerator[AsyncClient, None]:
+async def api_client(
+    test_db, redis_client, rabbitmq_connection
+) -> AsyncGenerator[AsyncClient, None]:
     """Create test client for API"""
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
@@ -136,15 +141,15 @@ def mock_ml_model(mocker):
 @pytest.fixture
 def sample_image():
     """Create a sample image for testing"""
-    import numpy as np
     import cv2
-    
+    import numpy as np
+
     # Create a simple 100x100 RGB image
     image = np.zeros((100, 100, 3), dtype=np.uint8)
     # Add some patterns
     cv2.rectangle(image, (20, 20), (80, 80), (255, 0, 0), -1)
     cv2.circle(image, (50, 50), 20, (0, 255, 0), -1)
-    
+
     return image
 
 
@@ -152,7 +157,7 @@ def sample_image():
 def auth_headers():
     """Create authentication headers for testing"""
     from api.main import create_access_token
-    
+
     token = create_access_token(data={"sub": "testuser"})
     return {"Authorization": f"Bearer {token}"}
 
@@ -165,7 +170,7 @@ def user_data():
         "username": "testuser",
         "email": "test@example.com",
         "full_name": "Test User",
-        "password": "testpass123"
+        "password": "testpass123",
     }
 
 
@@ -176,18 +181,18 @@ def process_request_data():
         "stream_token": "test_token_123",
         "process_type": "face_swap",
         "model_name": "face_swap_v1",
-        "parameters": {
-            "confidence_threshold": 0.5
-        }
+        "parameters": {"confidence_threshold": 0.5},
     }
 
 
 # Additional fixtures for video processing tests
 
+
 @pytest.fixture
 def test_frame_480p():
     """Generate a 480p test video frame"""
     import numpy as np
+
     return np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
 
 
@@ -195,6 +200,7 @@ def test_frame_480p():
 def test_frame_720p():
     """Generate a 720p test video frame"""
     import numpy as np
+
     return np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8)
 
 
@@ -202,7 +208,10 @@ def test_frame_720p():
 def encoded_frame(test_frame_480p):
     """Pre-encoded JPEG frame for testing"""
     import cv2
-    success, encoded = cv2.imencode('.jpg', test_frame_480p, [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+    success, encoded = cv2.imencode(
+        ".jpg", test_frame_480p, [cv2.IMWRITE_JPEG_QUALITY, 85]
+    )
     return encoded.tobytes() if success else None
 
 
@@ -236,7 +245,7 @@ def task_message_data():
         "streamKey": "test_stream_001",
         "task": "FaceOn",
         "redisID": "frame_12345",
-        "timestamp": "2025-11-13T00:00:00Z"
+        "timestamp": "2025-11-13T00:00:00Z",
     }
 
 
@@ -244,10 +253,12 @@ def task_message_data():
 def pytest_configure(config):
     """Configure custom pytest markers"""
     config.addinivalue_line(
-        "markers", "redis: marks tests that require Redis (deselect with '-m \"not redis\"')"
+        "markers",
+        "redis: marks tests that require Redis (deselect with '-m \"not redis\"')",
     )
     config.addinivalue_line(
-        "markers", "rabbitmq: marks tests that require RabbitMQ (deselect with '-m \"not rabbitmq\"')"
+        "markers",
+        "rabbitmq: marks tests that require RabbitMQ (deselect with '-m \"not rabbitmq\"')",
     )
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
@@ -255,9 +266,5 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "benchmark: marks tests as benchmarks (select with '-m benchmark')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: marks tests as end-to-end tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "e2e: marks tests as end-to-end tests")

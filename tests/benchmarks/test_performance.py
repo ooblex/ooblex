@@ -2,13 +2,15 @@
 Performance benchmarks for Ooblex
 Tests throughput, latency, and resource usage
 """
-import pytest
-import numpy as np
-import cv2
-import time
-import redis
+
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import cv2
+import numpy as np
+import pytest
+import redis
 
 
 class TestEncodingBenchmarks:
@@ -32,8 +34,9 @@ class TestEncodingBenchmarks:
     @pytest.mark.benchmark
     def test_jpeg_encoding_480p(self, frame_480p, benchmark):
         """Benchmark JPEG encoding for 480p frames"""
+
         def encode():
-            return cv2.imencode('.jpg', frame_480p, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            return cv2.imencode(".jpg", frame_480p, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
         result = benchmark(encode)
         assert result[0], "Encoding failed"
@@ -42,8 +45,9 @@ class TestEncodingBenchmarks:
     @pytest.mark.benchmark
     def test_jpeg_encoding_720p(self, frame_720p, benchmark):
         """Benchmark JPEG encoding for 720p frames"""
+
         def encode():
-            return cv2.imencode('.jpg', frame_720p, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            return cv2.imencode(".jpg", frame_720p, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
         result = benchmark(encode)
         assert result[0], "Encoding failed"
@@ -52,8 +56,9 @@ class TestEncodingBenchmarks:
     @pytest.mark.benchmark
     def test_jpeg_encoding_1080p(self, frame_1080p, benchmark):
         """Benchmark JPEG encoding for 1080p frames"""
+
         def encode():
-            return cv2.imencode('.jpg', frame_1080p, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            return cv2.imencode(".jpg", frame_1080p, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
         result = benchmark(encode)
         assert result[0], "Encoding failed"
@@ -62,8 +67,9 @@ class TestEncodingBenchmarks:
     @pytest.mark.benchmark
     def test_png_encoding_480p(self, frame_480p, benchmark):
         """Benchmark PNG encoding for 480p frames"""
+
         def encode():
-            return cv2.imencode('.png', frame_480p)
+            return cv2.imencode(".png", frame_480p)
 
         result = benchmark(encode)
         assert result[0], "Encoding failed"
@@ -77,19 +83,20 @@ class TestDecodingBenchmarks:
     def encoded_480p(self):
         """Pre-encoded 480p frame"""
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         return encoded
 
     @pytest.fixture
     def encoded_720p(self):
         """Pre-encoded 720p frame"""
         frame = np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         return encoded
 
     @pytest.mark.benchmark
     def test_jpeg_decoding_480p(self, encoded_480p, benchmark):
         """Benchmark JPEG decoding for 480p frames"""
+
         def decode():
             return cv2.imdecode(encoded_480p, cv2.IMREAD_COLOR)
 
@@ -100,6 +107,7 @@ class TestDecodingBenchmarks:
     @pytest.mark.benchmark
     def test_jpeg_decoding_720p(self, encoded_720p, benchmark):
         """Benchmark JPEG decoding for 720p frames"""
+
         def decode():
             return cv2.imdecode(encoded_720p, cv2.IMREAD_COLOR)
 
@@ -118,6 +126,7 @@ class TestImageProcessingBenchmarks:
     @pytest.mark.benchmark
     def test_resize_480p_to_256(self, frame_640x480, benchmark):
         """Benchmark resizing 480p to 256x256"""
+
         def resize():
             return cv2.resize(frame_640x480, (256, 256))
 
@@ -128,6 +137,7 @@ class TestImageProcessingBenchmarks:
     @pytest.mark.benchmark
     def test_gaussian_blur(self, frame_640x480, benchmark):
         """Benchmark Gaussian blur"""
+
         def blur():
             return cv2.GaussianBlur(frame_640x480, (15, 15), 0)
 
@@ -138,6 +148,7 @@ class TestImageProcessingBenchmarks:
     @pytest.mark.benchmark
     def test_color_conversion(self, frame_640x480, benchmark):
         """Benchmark BGR to RGB conversion"""
+
         def convert():
             return cv2.cvtColor(frame_640x480, cv2.COLOR_BGR2RGB)
 
@@ -165,7 +176,7 @@ class TestRedisBenchmarks:
     def redis_client(self):
         """Create Redis client"""
         try:
-            client = redis.Redis(host='localhost', port=6379, db=0)
+            client = redis.Redis(host="localhost", port=6379, db=0)
             client.ping()
             return client
         except redis.ConnectionError:
@@ -175,7 +186,7 @@ class TestRedisBenchmarks:
     def encoded_frame(self):
         """Pre-encoded frame"""
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         return encoded.tobytes()
 
     @pytest.mark.benchmark
@@ -217,7 +228,7 @@ class TestThroughputBenchmarks:
 
         start = time.time()
         for _ in range(num_frames):
-            success, encoded = cv2.imencode('.jpg', frame)
+            success, encoded = cv2.imencode(".jpg", frame)
             assert success
 
         elapsed = time.time() - start
@@ -229,7 +240,7 @@ class TestThroughputBenchmarks:
     def test_decoding_throughput_30fps(self):
         """Test if system can decode 30 frames per second"""
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         assert success
 
         num_frames = 30
@@ -249,13 +260,13 @@ class TestThroughputBenchmarks:
     def test_redis_throughput(self):
         """Test Redis read/write throughput"""
         try:
-            client = redis.Redis(host='localhost', port=6379, db=0)
+            client = redis.Redis(host="localhost", port=6379, db=0)
             client.ping()
         except redis.ConnectionError:
             pytest.skip("Redis not available")
 
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame)
+        success, encoded = cv2.imencode(".jpg", frame)
         encoded_bytes = encoded.tobytes()
 
         num_operations = 100
@@ -281,11 +292,13 @@ class TestParallelProcessing:
     def test_parallel_encoding(self):
         """Test encoding multiple frames in parallel"""
         num_frames = 10
-        frames = [np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-                  for _ in range(num_frames)]
+        frames = [
+            np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+            for _ in range(num_frames)
+        ]
 
         def encode_frame(frame):
-            return cv2.imencode('.jpg', frame)
+            return cv2.imencode(".jpg", frame)
 
         # Sequential processing
         start = time.time()
@@ -330,14 +343,18 @@ class TestMemoryBenchmarks:
             raw_size = frame.nbytes
 
             # Encoded frame
-            success, encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            success, encoded = cv2.imencode(
+                ".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85]
+            )
             encoded_size = len(encoded)
 
             compression = raw_size / encoded_size
 
-            print(f"  {name}: Raw={raw_size/1024/1024:.2f}MB, "
-                  f"Encoded={encoded_size/1024:.2f}KB, "
-                  f"Compression={compression:.1f}x")
+            print(
+                f"  {name}: Raw={raw_size/1024/1024:.2f}MB, "
+                f"Encoded={encoded_size/1024:.2f}KB, "
+                f"Compression={compression:.1f}x"
+            )
 
     def test_batch_memory_usage(self):
         """Test memory usage of frame batches"""
@@ -345,8 +362,10 @@ class TestMemoryBenchmarks:
 
         print("\nBatch memory usage:")
         for batch_size in batch_sizes:
-            frames = [np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-                      for _ in range(batch_size)]
+            frames = [
+                np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+                for _ in range(batch_size)
+            ]
 
             total_size = sum(f.nbytes for f in frames)
 
@@ -360,7 +379,7 @@ class TestLatencyBreakdown:
     def test_end_to_end_latency(self):
         """Measure end-to-end latency breakdown"""
         try:
-            client = redis.Redis(host='localhost', port=6379, db=0)
+            client = redis.Redis(host="localhost", port=6379, db=0)
             client.ping()
         except redis.ConnectionError:
             pytest.skip("Redis not available")
@@ -371,43 +390,45 @@ class TestLatencyBreakdown:
 
         # Encoding
         start = time.time()
-        success, encoded = cv2.imencode('.jpg', frame)
-        timings['encoding'] = time.time() - start
+        success, encoded = cv2.imencode(".jpg", frame)
+        timings["encoding"] = time.time() - start
         assert success
 
         # Redis write
         start = time.time()
         client.setex("latency_test", 10, encoded.tobytes())
-        timings['redis_write'] = time.time() - start
+        timings["redis_write"] = time.time() - start
 
         # Redis read
         start = time.time()
         retrieved = client.get("latency_test")
-        timings['redis_read'] = time.time() - start
+        timings["redis_read"] = time.time() - start
         assert retrieved is not None
 
         # Decoding
         start = time.time()
         decoded = cv2.imdecode(np.frombuffer(retrieved, np.uint8), cv2.IMREAD_COLOR)
-        timings['decoding'] = time.time() - start
+        timings["decoding"] = time.time() - start
         assert decoded is not None
 
         # Processing (mock with resize)
         start = time.time()
         processed = cv2.resize(decoded, (256, 256))
         processed = cv2.resize(processed, (640, 480))
-        timings['processing'] = time.time() - start
+        timings["processing"] = time.time() - start
 
         # Total
-        timings['total'] = sum(timings.values())
+        timings["total"] = sum(timings.values())
 
         print("\nLatency breakdown (480p):")
         for operation, latency in timings.items():
-            percentage = (latency / timings['total']) * 100
+            percentage = (latency / timings["total"]) * 100
             print(f"  {operation:15s}: {latency*1000:6.2f}ms ({percentage:5.1f}%)")
 
         # Total should be under 100ms for this pipeline
-        assert timings['total'] < 0.1, f"Total latency too high: {timings['total']*1000:.2f}ms"
+        assert (
+            timings["total"] < 0.1
+        ), f"Total latency too high: {timings['total']*1000:.2f}ms"
 
         # Cleanup
         client.delete("latency_test")

@@ -2,9 +2,9 @@
 """
 Download OpenCV Haar Cascades for face detection
 """
+import logging
 import os
 import urllib.request
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,21 +24,21 @@ CASCADES = {
 def download_cascades(output_dir="cascades"):
     """Download all cascade files"""
     os.makedirs(output_dir, exist_ok=True)
-    
+
     for filename, url in CASCADES.items():
         output_path = os.path.join(output_dir, filename)
-        
+
         if os.path.exists(output_path):
             logger.info(f"Cascade {filename} already exists, skipping")
             continue
-            
+
         logger.info(f"Downloading {filename}...")
         try:
             urllib.request.urlretrieve(url, output_path)
             logger.info(f"Successfully downloaded {filename}")
         except Exception as e:
             logger.error(f"Failed to download {filename}: {e}")
-            
+
     logger.info("All cascades downloaded successfully")
 
 

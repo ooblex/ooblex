@@ -2,11 +2,13 @@
 Unit tests for core Ooblex services
 Tests core functionality without requiring actual ML models or external services
 """
-import pytest
-import numpy as np
-import cv2
+
 import json
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import cv2
+import numpy as np
+import pytest
 
 
 class TestImageProcessing:
@@ -25,7 +27,7 @@ class TestImageProcessing:
         image = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
 
         # Encode as JPEG
-        success, encoded = cv2.imencode('.jpg', image)
+        success, encoded = cv2.imencode(".jpg", image)
         assert success, "Failed to encode image"
         assert len(encoded) > 0, "Encoded image is empty"
 
@@ -80,7 +82,7 @@ class TestRedisOperations:
 
         # Create a test frame
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        success, encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        success, encoded = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
         assert success
 
         # Mock storing frame
@@ -110,13 +112,12 @@ class TestRabbitMQOperations:
         task_data = {
             "streamKey": "test_stream",
             "task": "FaceOn",
-            "redisID": "frame_123"
+            "redisID": "frame_123",
         }
 
         # Simulate publishing
         await mock_channel.default_exchange.publish(
-            Mock(body=json.dumps(task_data).encode()),
-            routing_key="tf-task"
+            Mock(body=json.dumps(task_data).encode()), routing_key="tf-task"
         )
 
         # Verify publish was called
@@ -129,10 +130,9 @@ class TestRabbitMQOperations:
 
         # Mock message
         mock_message = Mock()
-        mock_message.body = json.dumps({
-            "streamKey": "test_stream",
-            "task": "FaceOn"
-        }).encode()
+        mock_message.body = json.dumps(
+            {"streamKey": "test_stream", "task": "FaceOn"}
+        ).encode()
         mock_message.ack = AsyncMock()
 
         # Simulate processing
@@ -218,19 +218,15 @@ class TestWebSocketMessages:
         redis_id = "frame_123"
 
         # Create task message (original brain.py format)
-        task_msg = {
-            'streamKey': stream_key,
-            'task': task,
-            'redisID': redis_id
-        }
+        task_msg = {"streamKey": stream_key, "task": task, "redisID": redis_id}
 
         # Verify JSON serialization
         json_str = json.dumps(task_msg)
         parsed = json.loads(json_str)
 
-        assert parsed['streamKey'] == stream_key
-        assert parsed['task'] == task
-        assert parsed['redisID'] == redis_id
+        assert parsed["streamKey"] == stream_key
+        assert parsed["task"] == task
+        assert parsed["redisID"] == redis_id
 
 
 class TestVideoProcessingPipeline:
@@ -242,7 +238,7 @@ class TestVideoProcessingPipeline:
         incoming_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
 
         # 2. Encode frame
-        success, encoded = cv2.imencode('.jpg', incoming_frame)
+        success, encoded = cv2.imencode(".jpg", incoming_frame)
         assert success
 
         # 3. Store in Redis (mocked)
@@ -250,18 +246,13 @@ class TestVideoProcessingPipeline:
         redis_storage = {frame_id: encoded.tobytes()}
 
         # 4. Queue task (mocked)
-        task = {
-            "streamKey": "stream_001",
-            "task": "FaceOn",
-            "redisID": frame_id
-        }
+        task = {"streamKey": "stream_001", "task": "FaceOn", "redisID": frame_id}
         task_queue = [task]
 
         # 5. Worker retrieves and processes (mocked)
         retrieved_encoded = redis_storage[frame_id]
         decoded_frame = cv2.imdecode(
-            np.frombuffer(retrieved_encoded, np.uint8),
-            cv2.IMREAD_COLOR
+            np.frombuffer(retrieved_encoded, np.uint8), cv2.IMREAD_COLOR
         )
         assert decoded_frame is not None
 
@@ -270,7 +261,7 @@ class TestVideoProcessingPipeline:
         assert processed_frame.shape == decoded_frame.shape
 
         # 7. Encode result
-        success, result_encoded = cv2.imencode('.jpg', processed_frame)
+        success, result_encoded = cv2.imencode(".jpg", processed_frame)
         assert success
 
         # 8. Store result in Redis
@@ -278,10 +269,7 @@ class TestVideoProcessingPipeline:
         redis_storage[result_id] = result_encoded.tobytes()
 
         # 9. Broadcast completion
-        broadcast_msg = {
-            "key": "stream_001",
-            "msg": f"Processed: {result_id}"
-        }
+        broadcast_msg = {"key": "stream_001", "msg": f"Processed: {result_id}"}
 
         assert broadcast_msg["key"] == "stream_001"
         assert result_id in redis_storage
@@ -294,24 +282,18 @@ class TestConfigurationParsing:
         """Test that config has required fields"""
         # Mock config structure (from original config.py)
         config = {
-            'REDIS_CONFIG': {
-                'uri': 'redis://localhost:6379'
-            },
-            'RABBITMQ_CONFIG': {
-                'uri': 'amqp://guest:guest@localhost:5672'
-            },
-            'DOMAIN_CONFIG': {
-                'domain': 'localhost'
-            }
+            "REDIS_CONFIG": {"uri": "redis://localhost:6379"},
+            "RABBITMQ_CONFIG": {"uri": "amqp://guest:guest@localhost:5672"},
+            "DOMAIN_CONFIG": {"domain": "localhost"},
         }
 
-        assert 'REDIS_CONFIG' in config
-        assert 'RABBITMQ_CONFIG' in config
-        assert 'DOMAIN_CONFIG' in config
+        assert "REDIS_CONFIG" in config
+        assert "RABBITMQ_CONFIG" in config
+        assert "DOMAIN_CONFIG" in config
 
-        assert 'uri' in config['REDIS_CONFIG']
-        assert 'uri' in config['RABBITMQ_CONFIG']
-        assert 'domain' in config['DOMAIN_CONFIG']
+        assert "uri" in config["REDIS_CONFIG"]
+        assert "uri" in config["RABBITMQ_CONFIG"]
+        assert "domain" in config["DOMAIN_CONFIG"]
 
 
 if __name__ == "__main__":
