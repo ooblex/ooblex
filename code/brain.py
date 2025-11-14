@@ -292,4 +292,5 @@ mainChannel_in.queue.declare("tf-controller", arguments={'x-message-ttl':3600000
 mainChannel_in.basic.consume(processMessage, 'tf-controller', no_ack=False)
 mainChannel_in.basic.qos( 1 , global_ = True )
 mainChannel_in.start_consuming()
+"""
 

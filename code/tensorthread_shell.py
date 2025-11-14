@@ -85,11 +85,10 @@ def tensorThread(something):
 	def faceDetection(img, token, rid, dectype="trump"):  ## RESULT IS IMAGE BASED TRANSFORMATION
 		global graph, r
 		img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    ## DO SOMETHING
+		## DO SOMETHING
 		with graph.as_default():
-				 ### DO SOMETHING 
-
-		jpg = cv2.imencode(".jpg", img).tostring()
+			### DO SOMETHING
+			jpg = cv2.imencode(".jpg", img).tostring()
 		rid = rid+":face"
 		r.set(rid, jpg, ex=30)
 		r.publish(token+"face", rid)
