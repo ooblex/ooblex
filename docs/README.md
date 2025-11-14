@@ -1,51 +1,45 @@
-# Ooblex Documentation Website
+# Ooblex Documentation
 
-This folder contains the public-facing website for Ooblex, showcasing the platform's features and capabilities.
+This directory contains both project documentation and the legacy website.
 
-## Pages
+## Project Documentation
 
-- `index.html` - Main landing page highlighting key features and benefits
-- `gettingstarted.html` - Quick start guide for deploying Ooblex with Docker
-- `features.html` - Comprehensive feature showcase
+- **[SUGGESTIONS.md](SUGGESTIONS.md)** - Roadmap and improvement suggestions
+- **[CLEANUP_REPORT.md](CLEANUP_REPORT.md)** - What was removed during cleanup
+- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** - Architecture deep dive
 
-## Serving Locally
+## Legacy Website (⚠️ OUTDATED)
 
-To view the website locally:
+The HTML files (`index.html`, `features.html`, etc.) are a **legacy marketing website** that **does NOT reflect current capabilities**:
 
-```bash
-# Using Python
-python -m http.server 8000
+### What the website claims (INCORRECT):
+- ❌ "Enterprise-grade platform"
+- ❌ "Blockchain trust and verification"
+- ❌ "Edge computing with WebAssembly"
+- ❌ "SOC2 compliance"
+- ❌ "Fortune 500 customers"
+- ❌ "Enterprise SLAs and 24/7 support"
+- ❌ "WHIP/WHEP protocol support"
+- ❌ "Sub-100ms latency"
 
-# Using Node.js
-npx http-server
+### What Ooblex actually is:
+- ✅ Open-source real-time video processing
+- ✅ WebRTC pipeline with Redis/RabbitMQ
+- ✅ 200-400ms latency (not sub-100ms)
+- ✅ OpenCV effects that work immediately
+- ✅ Docker deployment
+- ✅ Support for TensorFlow/PyTorch/ONNX models
 
-# Using Docker
-docker run -p 8000:80 -v $(pwd):/usr/share/nginx/html nginx
-```
+**The website should be updated or removed** to avoid misleading users.
 
-Then visit http://localhost:8000
+## Technical Documentation
 
-## Deployment
+The markdown files (`api.md`, `models.md`, `webrtc.md`, etc.) contain useful technical information but should be reviewed for accuracy.
 
-The website can be deployed to any static hosting service:
-- GitHub Pages
-- Netlify
-- Vercel
-- AWS S3 + CloudFront
-- Cloudflare Pages
+## Archive
 
-## Modern Features Highlighted
-
-The updated website showcases all of Ooblex's modern capabilities:
-
-- **WebRTC Streaming**: WHIP/WHEP protocols, sub-100ms latency
-- **Edge Computing**: WebAssembly modules for browser-based AI
-- **Blockchain Trust**: Content authenticity and deepfake detection
-- **Mobile SDKs**: Native iOS/Android, Flutter, React Native
-- **Real-time Collaboration**: Multi-user synchronized sessions
-- **Cloud Native**: Kubernetes, Docker, Helm charts
-- **Enterprise Ready**: Monitoring, security, scalability
-
-## Contributing
-
-When updating the website, ensure all new features are properly documented and the messaging remains consistent across all pages.
+The `archive/` folder contains old documentation from previous iterations:
+- README.old.md
+- SECURITY.md (superseded by ../SECURITY_FIXES.md)
+- Old architecture proposals
+- Historical review reports
