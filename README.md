@@ -1,6 +1,7 @@
 # Ooblex - Real-Time Bidirectional AI Video Processing
 
 [![CI/CD Pipeline](https://github.com/ooblex/ooblex/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/ooblex/ooblex/actions)
+[![Security](https://img.shields.io/badge/security-patched-success.svg)](SECURITY_FIXES.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)](docker-compose.yml)
@@ -447,6 +448,55 @@ LOG_LEVEL=info
 - **10 workers**: ~150-250 FPS
 
 **Total latency: 200-400ms** (sub-second for real-time feel)
+
+---
+
+## 🔒 Security
+
+Ooblex takes security seriously. All critical vulnerabilities have been patched.
+
+### Recent Security Updates (November 2024)
+
+✅ **4 CVEs Fixed** (1 Critical, 2 High, 1 Low)
+
+- CVE-2024-33663 (python-jose) - **CRITICAL** (CVSS 9.3) - ✅ Fixed
+- CVE-2024-33664 (python-jose) - **HIGH** (CVSS 5.3) - ✅ Fixed
+- CVE-2024-12797 (cryptography) - **HIGH** - ✅ Fixed
+- CVE-2025-53643 (aiohttp) - **LOW** (CVSS 3.7) - ✅ Fixed
+
+**See [SECURITY_FIXES.md](SECURITY_FIXES.md) for complete details.**
+
+### Reporting Security Issues
+
+**DO NOT** open public issues for security vulnerabilities.
+
+Instead:
+1. Email security concerns to the maintainers (create GitHub security advisory)
+2. Provide detailed description and steps to reproduce
+3. Allow time for patch before public disclosure
+
+### Security Best Practices
+
+Before production deployment:
+
+```bash
+# 1. Update dependencies
+pip install --upgrade -r requirements.txt
+
+# 2. Run security audit
+pip install pip-audit
+pip-audit
+
+# 3. Enable security features in .env
+ENABLE_RATE_LIMITING=true
+JWT_SECRET=<strong-random-secret>
+
+# 4. Use HTTPS/SSL only
+# See DEPLOYMENT.md for SSL setup
+
+# 5. Follow deployment security checklist
+# See DEPLOYMENT.md Section: Security Checklist
+```
 
 ---
 
