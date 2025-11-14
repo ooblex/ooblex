@@ -2,4 +2,4 @@ redis==5.2.1
 aio-pika==9.5.4
 opencv-python==4.10.0.84
 numpy==1.26.4
-Pillow==11.0.0
+Pillow==11.3.0  # Updated from 11.0.0 to latest secure version
