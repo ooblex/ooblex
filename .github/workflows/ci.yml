@@ -209,6 +209,138 @@ jobs:
             fi
           done
 
+  test-docker-compose-simple:
+    name: Test Docker Compose Simple
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install netcat for port checking
+        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd redis-tools
+
+      - name: Validate docker-compose.simple.yml config
+        run: docker compose -f docker-compose.simple.yml config > /dev/null
+
+      - name: Build docker-compose.simple.yml images
+        run: docker compose -f docker-compose.simple.yml build
+
+      - name: Start docker-compose.simple.yml services
+        run: docker compose -f docker-compose.simple.yml up -d
+
+      - name: Wait for Redis to be healthy
+        run: |
+          echo "Waiting for Redis..."
+          for i in {1..30}; do
+            if docker compose -f docker-compose.simple.yml ps redis | grep -q "healthy"; then
+              echo "✓ Redis is healthy"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "✗ Redis failed to become healthy"
+              docker compose -f docker-compose.simple.yml logs redis
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Wait for RabbitMQ to be healthy
+        run: |
+          echo "Waiting for RabbitMQ..."
+          for i in {1..30}; do
+            if docker compose -f docker-compose.simple.yml ps rabbitmq | grep -q "healthy"; then
+              echo "✓ RabbitMQ is healthy"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "✗ RabbitMQ failed to become healthy"
+              docker compose -f docker-compose.simple.yml logs rabbitmq
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Wait for API service to respond
+        run: |
+          echo "Waiting for API service on port 8800..."
+          for i in {1..60}; do
+            if nc -z localhost 8800; then
+              echo "✓ API service is responding on port 8800"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "✗ API service failed to respond"
+              docker compose -f docker-compose.simple.yml logs api
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Wait for MJPEG service to respond
+        run: |
+          echo "Waiting for MJPEG service on port 8081..."
+          for i in {1..60}; do
+            if nc -z localhost 8081; then
+              echo "✓ MJPEG service is responding on port 8081"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "✗ MJPEG service failed to respond"
+              docker compose -f docker-compose.simple.yml logs mjpeg
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Verify all services are running
+        run: |
+          echo "Checking all services..."
+          docker compose -f docker-compose.simple.yml ps
+
+          # Count running services
+          RUNNING_SERVICES=$(docker compose -f docker-compose.simple.yml ps --services --filter "status=running" | wc -l)
+          EXPECTED_SERVICES=5  # redis, rabbitmq, worker, api, mjpeg
+
+          if [ $RUNNING_SERVICES -ge $EXPECTED_SERVICES ]; then
+            echo "✓ All expected services are running ($RUNNING_SERVICES/$EXPECTED_SERVICES)"
+          else
+            echo "✗ Not all services are running ($RUNNING_SERVICES/$EXPECTED_SERVICES)"
+            exit 1
+          fi
+
+      - name: Test Redis connectivity
+        run: |
+          echo "Testing Redis connectivity..."
+          redis-cli -h localhost -p 6379 ping
+          echo "✓ Redis is responding to commands"
+
+      - name: Check worker logs
+        run: |
+          echo "Checking worker logs..."
+          docker compose -f docker-compose.simple.yml logs worker --tail=20
+
+          # Verify workers are actually running
+          WORKER_COUNT=$(docker compose -f docker-compose.simple.yml ps worker --format json | jq -s 'length')
+          echo "Worker instances running: $WORKER_COUNT"
+          if [ "$WORKER_COUNT" -lt 1 ]; then
+            echo "✗ No worker instances running"
+            exit 1
+          fi
+          echo "✓ Worker instances are running"
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "=== Service Logs ==="
+          docker compose -f docker-compose.simple.yml logs --tail=50
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.simple.yml down -v
+
   validate-install-scripts:
     name: Validate Install Scripts
     runs-on: ubuntu-latest
@@ -257,7 +389,7 @@ jobs:
 
   summary:
     name: CI Summary
-    needs: [lint, test-unit, test-integration, test-docker-build, validate-compose, validate-install-scripts]
+    needs: [lint, test-unit, test-integration, test-docker-build, validate-compose, test-docker-compose-simple, validate-install-scripts]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -269,4 +401,5 @@ jobs:
           echo "Integration Tests: ${{ needs.test-integration.result }}"
           echo "Docker Build: ${{ needs.test-docker-build.result }}"
           echo "Compose Validation: ${{ needs.validate-compose.result }}"
+          echo "Docker Compose Simple Test: ${{ needs.test-docker-compose-simple.result }}"
           echo "Install Scripts: ${{ needs.validate-install-scripts.result }}"
