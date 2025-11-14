@@ -27,14 +27,14 @@ FROM python:3.11-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    libssl3 \
+    libssl-dev \
     curl \
-    libavformat58 \
-    libavcodec58 \
-    libavdevice58 \
-    libavutil56 \
-    libswscale5 \
-    libswresample3 \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
