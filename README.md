@@ -13,11 +13,7 @@ Process live video streams with AI models in real-time. 200-400ms latency via We
 
 ## Architecture
 
-```
-Browser (WebRTC) → Decoder → Redis Queue → ML Workers → Encoder → Browser
-                                ↓↑
-                            RabbitMQ
-```
+![Ooblex Architecture](docs/images/diagram.png)
 
 **Core Components:**
 - **WebRTC** - Browser video I/O (low latency, NAT traversal)
