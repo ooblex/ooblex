@@ -1,15 +1,11 @@
-from keras.models import Model
-from keras.layers import Input, Dense, Flatten, Reshape
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import Conv2D
-from keras.optimizers import Adam
-from keras.initializers import RandomNormal
-from keras.layers import *
-from keras.applications import *
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Flatten, Reshape, add, LeakyReLU, Conv2D
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.initializers import RandomNormal
 
 from pixel_shuffler import PixelShuffler
 
-optimizer = Adam( lr=5e-5, beta_1=0.5, beta_2=0.999 )
+optimizer = Adam( learning_rate=5e-5, beta_1=0.5, beta_2=0.999 )
 
 IMAGE_SHAPE = (256,256,3)
 
@@ -70,10 +66,6 @@ def Decoder():
 	x = Conv2D( 64, kernel_size=3, padding='same', kernel_initializer=RandomNormal(0, 0.02), activation='sigmoid', dilation_rate= 2)(x)
 	x = add([x, xi])
 
-	# out64 = Conv2D(64, kernel_size=3, padding='same')(x)
-	# out64 = LeakyReLU(alpha=0.1)(out64)
-	# out64 = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(out64)
-
 	x = upscale(32)(x)
 	x = upscale(16)(x)
 
@@ -88,13 +80,9 @@ def Decoder():
 	x = LeakyReLU(alpha=0.2)(x)
 	x = Conv2D( 16, kernel_size=3, padding='same', kernel_initializer=RandomNormal(0, 0.02), activation='sigmoid', dilation_rate= 1)(x)
 	x = add([x, xi])
-	
-	
 
-	#alpha = Conv2D(1, kernel_size=5, padding='same', activation="sigmoid")(x)
 	rgb = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x)
-	#out = concatenate([rgb,alpha])
-	
+
 	return Model( input_, rgb )
 	
 
