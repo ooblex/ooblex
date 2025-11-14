@@ -24,7 +24,6 @@ alembic = "^1.13.1"
 
 # Message Queue
 aio-pika = "^9.4.0"
-amqpstorm = "^2.10.0"
 
 # ML/AI Frameworks
 torch = "^2.1.2"
