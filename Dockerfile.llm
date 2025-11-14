@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements
+COPY requirements.llm.txt /app/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.llm.txt
+
+# Copy code
+COPY code /app/code
+
+# Run worker
+CMD ["python3", "/app/code/llm_worker.py"]

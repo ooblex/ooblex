@@ -1,0 +1,16 @@
+# LLM Response Worker Requirements
+
+# Redis and RabbitMQ
+redis>=5.0.0
+pika>=1.3.0
+
+# Ollama support (recommended)
+ollama>=0.1.0
+
+# Transformers support (optional)
+# transformers>=4.35.0
+# torch>=2.0.0
+# accelerate>=0.24.0
+
+# llama.cpp support (optional)
+# llama-cpp-python>=0.2.0
