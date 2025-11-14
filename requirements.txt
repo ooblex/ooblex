@@ -5,7 +5,7 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 websockets==14.1
-aiohttp==3.11.11
+aiohttp==3.12.15  # Updated from 3.11.11 to fix CVE-2025-53643
 pydantic==2.10.4
 pydantic-settings==2.7.0
 
@@ -27,7 +27,7 @@ onnx==1.17.0
 onnxruntime-gpu==1.20.1
 numpy==1.26.4
 opencv-python==4.10.0.84
-Pillow==11.0.0
+Pillow==11.3.0  # Updated from 11.0.0 to latest secure version
 scikit-learn==1.5.2
 mediapipe==0.10.18
 
@@ -37,10 +37,10 @@ imageio==2.36.1
 imageio-ffmpeg==0.5.1
 
 # Authentication and Security
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0  # Updated from 3.3.0 to fix CVE-2024-33663 (CVSS 9.3) and CVE-2024-33664
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.18
-cryptography==44.0.0
+cryptography==44.0.1  # Updated from 44.0.0 to fix CVE-2024-12797 (Vulnerable OpenSSL)
 
 # Monitoring and Logging
 prometheus-client==0.21.1
@@ -56,7 +56,7 @@ httpx==0.28.1
 tenacity==9.0.0
 tqdm==4.67.1
 click==8.1.8
-rich==13.9.5
+rich==13.9.4
 
 # Development Tools
 pytest==8.3.4

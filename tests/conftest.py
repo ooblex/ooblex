@@ -180,3 +180,84 @@ def process_request_data():
             "confidence_threshold": 0.5
         }
     }
+
+
+# Additional fixtures for video processing tests
+
+@pytest.fixture
+def test_frame_480p():
+    """Generate a 480p test video frame"""
+    import numpy as np
+    return np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+
+
+@pytest.fixture
+def test_frame_720p():
+    """Generate a 720p test video frame"""
+    import numpy as np
+    return np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8)
+
+
+@pytest.fixture
+def encoded_frame(test_frame_480p):
+    """Pre-encoded JPEG frame for testing"""
+    import cv2
+    success, encoded = cv2.imencode('.jpg', test_frame_480p, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    return encoded.tobytes() if success else None
+
+
+@pytest.fixture
+def mock_redis_client(mocker):
+    """Mock Redis client for unit tests"""
+    mock_client = mocker.AsyncMock()
+    mock_client.ping = mocker.AsyncMock(return_value=True)
+    mock_client.get = mocker.AsyncMock(return_value=b"test_data")
+    mock_client.set = mocker.AsyncMock(return_value=True)
+    mock_client.setex = mocker.AsyncMock(return_value=True)
+    mock_client.delete = mocker.AsyncMock(return_value=1)
+    mock_client.exists = mocker.AsyncMock(return_value=True)
+    return mock_client
+
+
+@pytest.fixture
+def mock_rabbitmq_channel(mocker):
+    """Mock RabbitMQ channel for unit tests"""
+    mock_channel = mocker.AsyncMock()
+    mock_channel.declare_queue = mocker.AsyncMock()
+    mock_channel.default_exchange = mocker.MagicMock()
+    mock_channel.default_exchange.publish = mocker.AsyncMock()
+    return mock_channel
+
+
+@pytest.fixture
+def task_message_data():
+    """Sample task message for RabbitMQ"""
+    return {
+        "streamKey": "test_stream_001",
+        "task": "FaceOn",
+        "redisID": "frame_12345",
+        "timestamp": "2025-11-13T00:00:00Z"
+    }
+
+
+# Pytest configuration
+def pytest_configure(config):
+    """Configure custom pytest markers"""
+    config.addinivalue_line(
+        "markers", "redis: marks tests that require Redis (deselect with '-m \"not redis\"')"
+    )
+    config.addinivalue_line(
+        "markers", "rabbitmq: marks tests that require RabbitMQ (deselect with '-m \"not rabbitmq\"')"
+    )
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
+    config.addinivalue_line(
+        "markers", "benchmark: marks tests as benchmarks (select with '-m benchmark')"
+    )
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "e2e: marks tests as end-to-end tests"
+    )
