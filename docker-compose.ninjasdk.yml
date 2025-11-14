@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # Redis - In-memory data store for audio chunks
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ - Message queue for task distribution
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NinjaSDK Audio Ingestion Service
+  ninjasdk-audio:
+    build:
+      context: ./services/ninjasdk-audio-ingestion
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      - NINJASDK_HOST=${NINJASDK_HOST:-wss://wss.vdo.ninja}
+      - NINJASDK_ROOM=${NINJASDK_ROOM:-ooblex-audio}
+      - NINJASDK_PASSWORD=${NINJASDK_PASSWORD:-}
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    volumes:
+      - ./services/ninjasdk-audio-ingestion:/app
+      - /app/node_modules
+
+  # Whisper STT Worker
+  whisper-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.whisper
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - WHISPER_DEVICE=${WHISPER_DEVICE:-cpu}
+      - WHISPER_COMPUTE_TYPE=${WHISPER_COMPUTE_TYPE:-int8}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    volumes:
+      - ./code:/app/code
+      - whisper-cache:/root/.cache/whisper
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # LLM Response Worker (Optional)
+  llm-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - LLM_BACKEND=${LLM_BACKEND:-mock}
+      - LLM_MODEL=${LLM_MODEL:-llama2}
+      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-256}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.7}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    volumes:
+      - ./code:/app/code
+      - llm-cache:/root/.cache/huggingface
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Web Server for Demo UI
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8800:80"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  rabbitmq-data:
+  whisper-cache:
+  llm-cache:
