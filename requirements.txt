@@ -39,7 +39,7 @@ imageio-ffmpeg==0.5.1
 python-jose[cryptography]==3.4.0  # Updated from 3.3.0 to fix CVE-2024-33663 (CVSS 9.3) and CVE-2024-33664
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.18
-cryptography==44.0.1  # Updated from 44.0.0 to fix CVE-2024-12797 (Vulnerable OpenSSL)
+cryptography==45.0.5  # Updated to latest secure version (matches webrtc service)
 
 # Monitoring and Logging
 prometheus-client==0.21.1
