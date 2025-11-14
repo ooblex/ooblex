@@ -1,13 +1,15 @@
+import os
+
 REDIS_CONFIG = {
-    'uri' : "redis://localhost"
+    'uri' : os.getenv('REDIS_URL', 'redis://localhost')
 }
 
 RABBITMQ_CONFIG = {
-    'uri' : 'amqp://guest:guest@localhost:5672/'
+    'uri' : os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672/')
 }
 
 DOMAIN_CONFIG = {
-    'domain' : "api.ooblex.com"
+    'domain' : os.getenv('DOMAIN', 'api.ooblex.com')
 }
 
 
