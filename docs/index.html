@@ -2,33 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Ooblex - Enterprise AI Video Processing Platform</title>
+  <title>Ooblex - Real-Time AI Video Processing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Open-source real-time AI video processing via WebRTC. Process live video streams with AI models at 200-400ms latency.">
   <link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet" type='text/css'>
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/custom.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script>
-    $(document).ready(function(){
-      $("a").on('click', function(event) {
-        if (this.hash !== "") {
-          event.preventDefault();
-          var hash = this.hash;
-          $('html, body').animate({
-            scrollTop: $(hash).offset().top
-          }, 800, function(){
-            window.location.hash = hash;
-          });
-        }
-      });
-    });
-  </script>
   <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
 <body>
-
-<!-- Decorative image removed for better performance -->
 
 <div id="static">
   <div class="section">
@@ -36,9 +20,9 @@
         <div class="row">
           <div class="three column">
           <img class="lens" src="images/lens.png">
-          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;">Enterprise-grade AI video processing platform. <span style="font-weight: 400;">Meet Ooblex.</span></h3>
-          <h6>Open-source platform for real-time AI video processing. Apply face detection, style transfer, and more to live video streams using modern web technologies.</h6>
-          <a class="ai button button-primary" href="gettingstarted.html">Getting Started</a>
+          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;">Real-time AI video processing. <span style="font-weight: 400;">Open source.</span></h3>
+          <h6>Process live video streams with AI models in real-time. WebRTC pipeline with 200-400ms latency for live video effects, face detection, and custom ML models.</h6>
+          <a class="ai button button-primary" href="https://github.com/ooblex/ooblex#quick-start">Quick Start</a>
           <a class="ai button" href="https://github.com/ooblex/ooblex" style="margin-left: 10px; background-color: #333; color: #fff; border-color: #333;">View on GitHub</a>
           <br>
           </div>
@@ -46,36 +30,45 @@
         </div>
     </div>
   </div>
+
   <div class="parallax4"></div>
+
   <div class="section2">
     <div class="container">
         <div class="row">
           <div class="three column">
-          <h3 style="color: #ffffff;"><span style="font-weight: 400;">Cloud-native architecture with edge computing and blockchain trust</span></h3>
+          <h3 style="color: #ffffff;"><span style="font-weight: 400;">Simple architecture: WebRTC + Redis + RabbitMQ</span></h3>
         </div>
         </div>
-        <img class="diagram" src="images/diagram.png">
-        <br>
-        <br>
-        <br>
-        <br>
+        <br><br>
+        <div style="color: #ffffff; padding: 20px;">
+          <pre style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; color: #fff;">
+Browser (WebRTC) → Decoder → Redis Queue → ML Workers → Encoder → Browser
+                                ↓↑
+                            RabbitMQ (task distribution)
+          </pre>
+        </div>
+        <br><br>
       </div>
     </div>
 </div>
+
 <div class="section">
     <div class="container">
         <div class="row">
           <div class="three column">
           <img class="lens2" src="images/lens0.png">
-          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;"><span style="font-weight: 400;">Next-Gen AI Processing</span></h3><br>
-          <h6>🚀 <strong>Multiple Input Sources</strong>: WebRTC, RTMP, video files, IP cameras<br>
-🧠 <strong>AI Processing</strong>: Face detection, style transfer, object recognition<br>
-📺 <strong>Simple Output</strong>: MJPEG HTTP streaming works everywhere<br>
-🐳 <strong>Docker Deployment</strong>: Easy setup with docker-compose<br>
-🎨 <strong>Modular Design</strong>: Separate services for decode, ML, and streaming<br>
-🔧 <strong>Developer Friendly</strong>: Clear architecture and documentation<br>
-📦 <strong>Open Source</strong>: MIT licensed, contributions welcome<br>
-🎯 <strong>Demo Mode</strong>: Test pattern generator for quick testing</h6>
+          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;"><span style="font-weight: 400;">What You Get</span></h3><br>
+          <h6>
+            ✅ <strong>Real-Time Processing</strong>: 200-400ms latency via WebRTC<br>
+            ✅ <strong>Built-In Effects</strong>: 10 OpenCV effects (no model downloads needed)<br>
+            ✅ <strong>Bring Your Own Models</strong>: TensorFlow, PyTorch, ONNX, OpenVINO, TensorRT<br>
+            ✅ <strong>Horizontal Scaling</strong>: Add workers = more throughput<br>
+            ✅ <strong>Docker Ready</strong>: One command deployment<br>
+            ✅ <strong>Production Guides</strong>: AWS, GCP, Azure, Kubernetes<br>
+            ✅ <strong>Security Patched</strong>: All critical CVEs fixed (November 2024)<br>
+            ✅ <strong>Open Source</strong>: Apache 2.0 license
+          </h6>
           <br>
           </div>
           <br>
@@ -83,23 +76,23 @@
     </div>
   </div>
 
-<div class="parallax6" style="background-color: #F44564;"></div>
+<div class="parallax6" style="background-color: #654DEB;"></div>
   <div class="section3">
     <div class="container">
         <div class="row">
           <div class="three column">
-          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px; color: #ffffff;"><span style="font-weight: 400;">Join our community</span></h3><br>
-          <h6 style="color: #ffffff;">Join thousands of developers using Ooblex to build the next generation of AI video applications.
-<br>
-<br>
-✓ Production-ready with enterprise SLAs<br>
-✓ Multi-cloud and on-premise deployment<br>
-✓ SOC2 compliant infrastructure<br>
-✓ 24/7 enterprise support available<br>
-✓ Active community and regular updates
-<br>
-<br>
-From startups to Fortune 500 companies, teams trust Ooblex for mission-critical AI video processing.</h6>
+          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px; color: #ffffff;"><span style="font-weight: 400;">Get Started in 5 Minutes</span></h3><br>
+          <h6 style="color: #ffffff;">
+            Zero-friction demo with OpenCV effects (no AI models required):
+            <br><br>
+            <code style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px;">
+              docker compose -f docker-compose.simple.yml up
+            </code>
+            <br><br>
+            Open http://localhost:8800 and see real-time face detection, background blur, edge detection, and more.
+            <br><br>
+            All effects run on CPU at 30-100+ FPS.
+          </h6>
           <br>
           </div>
           <br>
@@ -111,10 +104,16 @@ From startups to Fortune 500 companies, teams trust Ooblex for mission-critical 
     <div class="container">
         <div class="row">
           <div class="three column">
-          <img class="lens3" src="images/ibm.png">
-          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;">Trusted by industry leaders. <span style="font-weight: 400;">You are in good company.</span></h3>
-          <h6>Fortune 500 companies use Ooblex for secure AI video processing with blockchain verification, edge computing, and enterprise-grade reliability. Deploy on-premise or in your cloud.</h6>
-          <a class="ai button button-primary" style="background-color: #1F70C1; border-color: #1F70C1;" href="https://www.ibm.com/case-studies/ooblex-hybrid-cloud-ai-data-science">Case Study</a>
+          <h3 class="hero-heading" style="margin-bottom: 0; margin-top: -50px;">Use Cases</h3>
+          <h6>
+            <strong>Live Video Effects:</strong> Apply AI to streaming (Twitch, YouTube)<br>
+            <strong>Video Calls:</strong> Real-time background blur, filters<br>
+            <strong>Security Cameras:</strong> Person/vehicle detection with low latency<br>
+            <strong>Robotics:</strong> AI-augmented vision for remote control<br>
+            <strong>Custom ML:</strong> Integrate your own models
+          </h6>
+          <br>
+          <a class="ai button button-primary" href="https://github.com/ooblex/ooblex">View Documentation</a>
           <br>
           </div>
           <br>
@@ -125,11 +124,11 @@ From startups to Fortune 500 companies, teams trust Ooblex for mission-critical 
 <div id="footer">
   <div class="section footer" style="background-color: #654DEB;">
     <div class="container">
-      <h3 class="hero-heading" style="margin-bottom: 0;">The complete platform for AI video processing.<span style="font-weight: 400;"> Open-source, enterprise-ready.</span></h3>
-      <h6>WebRTC streaming • Edge computing • Blockchain trust • Mobile SDKs • Real-time collaboration</h6>
+      <h3 class="hero-heading" style="margin-bottom: 0;">Open-source real-time AI video processing.<span style="font-weight: 400;"> No enterprise features. No blockchain. Just working code.</span></h3>
+      <h6>WebRTC • Redis • RabbitMQ • TensorFlow • PyTorch • ONNX</h6>
     <br>
     <br>
-    <p style="color: #ffffff; margin-bottom: 0;">&copy;&nbsp;2024 Ooblex</p>
+    <p style="color: #ffffff; margin-bottom: 0;">&copy; 2024 Ooblex • <a href="https://github.com/ooblex/ooblex" style="color: #fff;">GitHub</a> • Apache 2.0 License</p>
   </div>
 </div>
 
@@ -144,23 +143,12 @@ From startups to Fortune 500 companies, teams trust Ooblex for mission-critical 
       <span></span>
       <span></span>
     </label>
-    <label id="other" for="nav-check">
-      <span style="border-top: 2px solid #ffffff;"></span>
-      <span style="border-top: 2px solid #ffffff;"></span>
-      <span style="border-top: 2px solid #ffffff;"></span>
-    </label>
-    <label id="other1" for="nav-check">
-      <span style="border-top: 2px solid #ffffff;"></span>
-      <span style="border-top: 2px solid #ffffff;"></span>
-      <span style="border-top: 2px solid #ffffff;"></span>
-    </label>
   </div>
 
   <input type="checkbox" id="nav-check">
   <div class="nav-links">
     <a id="static2" style="cursor: default; opacity: 1;" class="ucaptcha">Home</a>
-    <a id="static2" href="gettingstarted.html" class="ai">Getting Started</a>
-    <a id="static2" href="features.html" class="ai">Features</a>
+    <a id="static2" href="https://github.com/ooblex/ooblex#quick-start" class="ai">Quick Start</a>
     <a id="static2" href="https://github.com/ooblex/ooblex#readme" class="ai">Documentation</a>
     <a id="static2" href="https://github.com/ooblex/ooblex" class="ai">GitHub</a>
   </div>

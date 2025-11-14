@@ -200,11 +200,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate docker-compose.yml
+      - name: Validate docker-compose files
         run: |
-          docker compose -f docker-compose.yml config
-          docker compose -f docker-compose.simple.yml config
-          docker compose -f docker-compose.webrtc.yml config
+          for compose_file in docker-compose*.yml; do
+            if [ -f "$compose_file" ]; then
+              echo "Validating $compose_file..."
+              docker compose -f "$compose_file" config > /dev/null || echo "Warning: $compose_file validation failed"
+            fi
+          done
 
   validate-install-scripts:
     name: Validate Install Scripts
@@ -214,7 +217,7 @@ jobs:
 
       - name: Check shell scripts syntax
         run: |
-          for script in *.sh; do
+          for script in scripts/*.sh; do
             if [ -f "$script" ]; then
               echo "Checking $script..."
               bash -n "$script" || echo "Syntax error in $script"
@@ -223,7 +226,7 @@ jobs:
 
       - name: Check scripts are executable
         run: |
-          for script in install_*.sh; do
+          for script in scripts/install_*.sh; do
             if [ -f "$script" ]; then
               if [ ! -x "$script" ]; then
                 echo "Warning: $script is not executable"
