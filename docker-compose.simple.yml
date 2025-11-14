@@ -1,69 +1,100 @@
 version: '3.8'
 
+# Simplified Docker Compose for Zero-Friction Demo
+# Uses brain_simple.py with OpenCV effects (no AI models required)
+#
+# Usage:
+#   docker-compose -f docker-compose.simple.yml up
+
 services:
-  # Redis for frame queuing
+  # Redis for frame queue
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  # Simple ML Worker with OpenCV effects
-  ml-worker:
+  # RabbitMQ for task distribution
+  rabbitmq:
+    image: rabbitmq:3.12-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Simple ML Worker (brain_simple.py with OpenCV effects)
+  worker:
     build:
-      context: ./services/ml-worker
+      context: .
       dockerfile: Dockerfile.simple
-    deploy:
-      replicas: 3
+    restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379
-      WORKER_ID: "{{.Task.Slot}}"
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       LOG_LEVEL: info
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - ./services/ml-worker:/app
-      - ./models/cascades:/models/cascades
-    command: python ml_worker_simple.py
-
-  # WebRTC Server
-  webrtc:
-    build:
-      context: ./services/webrtc
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-      - "8001-8010:8001-8010/udp"
-    environment:
-      REDIS_URL: redis://redis:6379
-      SERVER_HOST: 0.0.0.0
-      SERVER_PORT: 8000
-    depends_on:
-      redis:
+      rabbitmq:
         condition: service_healthy
     volumes:
-      - ./services/webrtc:/app
-      - ./ssl:/ssl
+      - ./code:/app/code:ro
+    command: python3 /app/code/brain_simple.py
+    deploy:
+      replicas: 2
 
-  # Simple web server for the demo
-  nginx:
-    image: nginx:alpine
+  # API Server (WebSocket + WebRTC)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./html:/usr/share/nginx/html
-      - ./ssl:/etc/nginx/ssl
-      - ./nginx/simple.conf:/etc/nginx/conf.d/default.conf
+      - "8800:8800"
+    environment:
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      API_PORT: 8800
+      API_HOST: 0.0.0.0
+      LOG_LEVEL: info
     depends_on:
-      - webrtc
+      - redis
+      - rabbitmq
+    volumes:
+      - ./code:/app/code:ro
+      - ./html:/app/html:ro
+    command: python3 /app/code/api.py
 
-volumes:
-  redis_data:
+  # MJPEG Streaming Server
+  mjpeg:
+    build:
+      context: .
+      dockerfile: Dockerfile.simple
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_URL: redis://redis:6379
+      MJPEG_PORT: 8081
+      LOG_LEVEL: info
+    depends_on:
+      - redis
+    volumes:
+      - ./code:/app/code:ro
+    command: python3 /app/code/mjpeg.py
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,62 @@
+# Docker Compose Override Example
+# Copy to docker-compose.override.yml and customize
+# This file is NOT committed to git
+
+version: '3.8'
+
+services:
+  # Override ml-worker to use GPU
+  ml-worker:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+
+  # Add more workers
+  ml-worker-2:
+    extends:
+      service: ml-worker
+    container_name: ooblex-ml-worker-2
+
+  ml-worker-3:
+    extends:
+      service: ml-worker
+    container_name: ooblex-ml-worker-3
+
+  # Mount custom models directory
+  # ml-worker:
+  #   volumes:
+  #     - /path/to/your/models:/models:ro
+
+  # Use different Redis
+  # redis:
+  #   image: redis:7-alpine
+  #   command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru
+
+  # Add monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+
+volumes:
+  prometheus_data:
+  grafana_data:

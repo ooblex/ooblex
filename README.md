@@ -174,18 +174,44 @@ python3 code/brain_simple.py &
 
 **All effects run 30-100+ FPS on CPU!**
 
+**Validate installation:**
+```bash
+# Run comprehensive demo and validation
+python3 demo.py
+
+# Quick validation only
+python3 demo.py --quick
+
+# Test specific effect
+python3 demo.py --effect=FaceOn
+```
+
 ---
 
 ### Option 1: Docker Compose (Full Stack)
+
+**Quick Start with Simple Effects:**
+
+```bash
+# Start everything with brain_simple.py (no models needed)
+docker compose -f docker-compose.simple.yml up
+
+# Open browser
+open http://localhost:8800
+
+# Or just the infrastructure
+docker compose up -d redis rabbitmq
+python3 code/brain_simple.py
+```
 
 **Run full WebRTC demo:**
 
 ```bash
 # Start everything (Redis, RabbitMQ, WebRTC gateway, ML workers)
-./run-webrtc-demo.sh
+docker compose up -d
 
 # Open browser
-open https://localhost/webrtc-demo.html
+open http://localhost:8800
 
 # Allow webcam access, select effect, see real-time processing
 ```
@@ -276,6 +302,41 @@ Every push triggers:
 - ✅ Integration tests
 - ✅ Docker builds
 - ✅ Security scanning
+
+---
+
+## 🚀 Production Deployment
+
+Ready to deploy Ooblex to production?
+
+**See the comprehensive deployment guide:** [DEPLOYMENT.md](DEPLOYMENT.md)
+
+Covers:
+- ☁️ Cloud deployments (AWS, GCP, Azure)
+- 🐳 Kubernetes with auto-scaling
+- 🔒 SSL/TLS setup with Let's Encrypt
+- 📊 Monitoring with Prometheus + Grafana
+- 🔐 Security hardening checklist
+- ⚡ Performance tuning
+- 🌍 Multi-region deployment
+
+**Quick Production Start:**
+```bash
+# 1. Complete security checklist
+cp .env.example .env
+nano .env  # Change all passwords and secrets
+
+# 2. Get SSL certificate
+sudo certbot certonly --standalone -d yourdomain.com
+
+# 3. Deploy with Docker Compose
+docker-compose up -d
+
+# 4. Setup monitoring
+docker-compose -f docker-compose.monitoring.yml up -d
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full instructions.
 
 ---
 
