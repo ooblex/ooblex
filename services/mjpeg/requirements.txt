@@ -1,4 +1,4 @@
-aiohttp==3.12.15  # Updated from 3.12.14 to fix CVE-2025-53643
+aiohttp==3.13.3  # Updated from 3.12.14 to fix CVE-2025-53643
 aioredis==2.0.1
 opencv-python-headless==4.10.0.84
 Pillow==11.3.0  # Updated from 11.0.0 to latest secure version
