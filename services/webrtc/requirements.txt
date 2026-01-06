@@ -1,4 +1,4 @@
-aiohttp==3.12.15  # Updated from 3.12.14 to fix CVE-2025-53643
+aiohttp==3.13.3  # Updated from 3.12.14 to fix CVE-2025-53643
 aiohttp-cors==0.7.0
 aiortc==1.10.0
 websockets==14.1
@@ -8,7 +8,7 @@ prometheus-client==0.21.1
 python-json-logger==3.2.1
 pydantic==2.10.4
 pydantic-settings==2.7.0
-cryptography==45.0.5  # Already at secure version (newer than main requirements)
+cryptography==46.0.3  # Already at secure version (newer than main requirements)
 python-dotenv==1.0.1
 tenacity==9.0.0
 pyee==12.1.1
