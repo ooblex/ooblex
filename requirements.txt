@@ -2,10 +2,11 @@
 # Python 3.11+
 
 # Web Framework and Async
-fastapi==0.115.6
+fastapi==0.128.0  # Updated from 0.115.6 for latest features and compatibility
+starlette>=0.49.1  # Explicitly pinned to fix CVE-2025-54121, CVE-2025-62727
 uvicorn[standard]==0.34.0
 websockets==14.1
-aiohttp==3.12.15  # Updated from 3.11.11 to fix CVE-2025-53643
+aiohttp==3.13.3  # Updated from 3.12.15 to fix CVE-2025-69223, CVE-2025-69224, CVE-2025-69225, CVE-2025-69226, CVE-2025-69227, CVE-2025-69228, CVE-2025-69229, CVE-2025-69230
 pydantic==2.10.4
 pydantic-settings==2.7.0
 
@@ -19,8 +20,8 @@ alembic==1.14.0
 aio-pika==9.5.4
 
 # ML/AI Frameworks
-torch==2.5.1
-torchvision==0.20.1
+torch==2.8.0  # Updated from 2.5.1 to fix PYSEC-2025-41, CVE-2025-2953, CVE-2025-3730
+torchvision==0.23.0  # Updated to match torch 2.8.0
 tensorflow==2.18.0
 onnx==1.17.0
 onnxruntime-gpu==1.20.1
