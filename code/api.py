@@ -9,7 +9,7 @@ from multiprocessing import Process
 import time
 import sys
 import ssl
-from SimpleWebSocketServer import WebSocket, SimpleSSLWebSocketServer
+from SimpleWebSocketServer import WebSocket, SimpleSSLWebSocketServer, SimpleWebSocketServer
 from amqpstorm import UriConnection
 from amqpstorm import Message
 import uuid
@@ -114,6 +114,12 @@ mq = threading.Thread(target=checkMessages)
 mq.start()
 
 print("Main API server starting")
-server = SimpleSSLWebSocketServer("", 8800, SimpleChat, "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/fullchain.pem", "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/privkey.pem", version=ssl.PROTOCOL_TLS)
+ssl_enabled = os.getenv('SSL_ENABLED', 'false').lower() == 'true'
+api_port = int(os.getenv('API_PORT', '8800'))
+if ssl_enabled:
+    server = SimpleSSLWebSocketServer("", api_port, SimpleChat, "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/fullchain.pem", "/etc/letsencrypt/live/"+config.DOMAIN_CONFIG['domain']+"/privkey.pem", version=ssl.PROTOCOL_TLS)
+else:
+    print("SSL disabled, using non-SSL WebSocket server")
+    server = SimpleWebSocketServer("", api_port, SimpleChat)
 server.serveforever()
 print("API.py STOPPED!!!!!!!!")
