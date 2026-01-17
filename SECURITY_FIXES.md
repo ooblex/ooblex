@@ -1,13 +1,117 @@
-# Security Vulnerability Fixes - November 2024
+# Security Vulnerability Fixes
 
 This document details the security vulnerabilities that were identified and fixed in Ooblex.
 
-## Executive Summary
+---
 
-**Date:** November 14, 2024  
-**Vulnerabilities Fixed:** 4 CVEs (1 Critical, 2 High, 1 Low)  
-**Packages Updated:** 4 core dependencies  
-**Risk Level Before:** 🔴 **CRITICAL**  
+## January 2025 Update
+
+**Date:** January 15, 2025
+**Vulnerabilities Fixed:** 13 CVEs (8 High, 5 Medium/Low)
+**Packages Updated:** 5 core dependencies
+**Risk Level Before:** 🟠 **HIGH**
+**Risk Level After:** 🟢 **LOW**
+
+### Critical Vulnerabilities Fixed
+
+#### 1. aiohttp Multiple CVEs (HIGH)
+
+**Severity:** 🟠 **HIGH**
+**Package:** aiohttp
+**Vulnerable Version:** 3.12.15
+**Fixed Version:** 3.13.3
+
+##### CVEs Fixed:
+- CVE-2025-69223
+- CVE-2025-69224
+- CVE-2025-69225
+- CVE-2025-69226
+- CVE-2025-69227
+- CVE-2025-69228
+- CVE-2025-69229
+- CVE-2025-69230
+
+##### Mitigation
+Updated `aiohttp` from 3.12.15 to 3.13.3 in:
+- `requirements.txt`
+- `Dockerfile.simple`
+
+---
+
+#### 2. torch Multiple CVEs (HIGH/MEDIUM)
+
+**Severity:** 🟠 **HIGH**
+**Package:** torch
+**Vulnerable Version:** 2.5.1
+**Fixed Version:** 2.8.0
+
+##### CVEs Fixed:
+- PYSEC-2025-41 (fix in 2.6.0)
+- CVE-2025-2953 (fix in 2.7.1)
+- CVE-2025-3730 (fix in 2.8.0)
+
+##### Mitigation
+Updated `torch` from 2.5.1 to 2.8.0 and `torchvision` from 0.20.1 to 0.23.0 in:
+- `requirements.txt`
+
+---
+
+#### 3. starlette CVEs (HIGH)
+
+**Severity:** 🟠 **HIGH** (CVSS 7.5)
+**Package:** starlette
+**Vulnerable Version:** 0.41.3
+**Fixed Version:** 0.49.1+
+
+##### CVEs Fixed:
+- CVE-2025-54121 (fix in 0.47.2)
+- CVE-2025-62727 (O(n^2) DoS via Range header merging, fix in 0.49.1)
+
+##### Mitigation
+Updated `fastapi` to 0.128.0 and explicitly pinned `starlette>=0.49.1` in:
+- `requirements.txt`
+- `services/api/requirements.txt`
+
+---
+
+### Known Unfixable Vulnerabilities
+
+#### ecdsa CVE-2024-23342 (HIGH)
+
+**Severity:** 🟠 **HIGH** (CVSS 7.4)
+**Package:** ecdsa
+**Version:** 0.19.1
+**Status:** ⚠️ **NO FIX AVAILABLE**
+
+##### Description
+Minerva timing attack on P-256 curve. Using the `ecdsa.SigningKey.sign_digest()` API function and timing signatures, an attacker can leak the internal nonce which may allow for private key discovery.
+
+##### Why No Fix
+The python-ecdsa project considers side-channel attacks out of scope. The maintainers have stated there is no plan to release a fix.
+
+##### Recommendation
+For applications requiring protection against timing-based side-channel attacks, consider using alternative cryptographic libraries that provide constant-time implementations, such as the `cryptography` library which wraps OpenSSL.
+
+---
+
+### Packages Updated (January 2025)
+
+| Package | Old Version | New Version | CVEs Fixed |
+|---------|-------------|-------------|-----------|
+| aiohttp | 3.12.15 | 3.13.3 | 8 CVEs |
+| torch | 2.5.1 | 2.8.0 | 3 CVEs |
+| torchvision | 0.20.1 | 0.23.0 | (Updated for torch compatibility) |
+| fastapi | 0.115.6 | 0.128.0 | (Updated for starlette compatibility) |
+| starlette | 0.41.3 | >=0.49.1 | 2 CVEs |
+
+---
+
+## November 2024 Update
+
+**Date:** November 14, 2024
+**Vulnerabilities Fixed:** 4 CVEs (1 Critical, 2 High, 1 Low)
+**Packages Updated:** 4 core dependencies
+**Risk Level Before:** 🔴 **CRITICAL**
 **Risk Level After:** 🟢 **LOW**
 
 ---
