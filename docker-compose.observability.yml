@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Observability stack for Ooblex
 # Includes Jaeger, Prometheus, Grafana, and OpenTelemetry Collector
 

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Redis - In-memory data store for audio chunks
   redis:

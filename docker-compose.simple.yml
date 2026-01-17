@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Simplified Docker Compose for Zero-Friction Demo
 # Uses brain_simple.py with OpenCV effects (no AI models required)
 #
@@ -89,10 +87,12 @@ services:
       REDIS_URL: redis://redis:6379
       MJPEG_PORT: 8081
       LOG_LEVEL: info
+      ASSETS_PATH: /app/assets
     depends_on:
       - redis
     volumes:
       - ./code:/app/code:ro
+      - ./assets:/app/assets:ro
     command: python3 /app/code/mjpeg.py
 
 networks:

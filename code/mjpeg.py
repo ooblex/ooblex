@@ -20,7 +20,8 @@ r = redis.Redis.from_url(config.REDIS_CONFIG['uri'])
 for key in r.keys('*'):
 	print(key)
 				
-path = '/root/ooblex/assets/jpeg.jpg'
+assets_path = os.getenv('ASSETS_PATH', '/app/assets')
+path = os.path.join(assets_path, 'jpeg.jpg')
 jpeg = open(path,'rb')
 jpeg = jpeg.read()
 print(jpeg)
