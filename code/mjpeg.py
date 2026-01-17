@@ -101,12 +101,17 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         pass
 
 def remote_threader():
-    remote_Server = ThreadedHTTPServer(("", 81), myHandler)
-    # Use secure SSL context with TLS 1.2+ instead of deprecated wrap_socket
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-    ssl_context.load_cert_chain(certfile=chain_pem, keyfile=key_pem)
-    remote_Server.socket = ssl_context.wrap_socket(remote_Server.socket, server_side=True)
+    mjpeg_port = int(os.getenv('MJPEG_PORT', '81'))
+    ssl_enabled = os.getenv('SSL_ENABLED', 'false').lower() == 'true'
+    remote_Server = ThreadedHTTPServer(("", mjpeg_port), myHandler)
+    if ssl_enabled:
+        # Use secure SSL context with TLS 1.2+ instead of deprecated wrap_socket
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+        ssl_context.load_cert_chain(certfile=chain_pem, keyfile=key_pem)
+        remote_Server.socket = ssl_context.wrap_socket(remote_Server.socket, server_side=True)
+    else:
+        print("SSL disabled, using non-SSL HTTP server on port", mjpeg_port)
     remote_Server.serve_forever()
     print("end")
 
