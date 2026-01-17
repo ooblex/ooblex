@@ -31,7 +31,7 @@ class MLWorkerServicer(ooblex_pb2_grpc.MLWorkerServiceServicer):
     """gRPC ML Worker service implementation"""
     
     def __init__(self):
-        self.model_manager = ModelManager(cache_size=settings.MODEL_CACHE_SIZE)
+        self.model_manager = ModelManager(cache_size=settings.model_cache_size)
         self.processor = MLProcessor(self.model_manager)
         self.worker_id = str(uuid.uuid4())
         self.start_time = Timestamp()

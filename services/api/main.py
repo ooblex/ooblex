@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
     # Initialize Redis
     try:
         redis_client = await redis.from_url(
-            settings.REDIS_URL,
+            settings.redis_url,
             encoding="utf-8",
             decode_responses=False  # Keep as bytes for image data
         )
@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize RabbitMQ
     try:
-        rabbitmq_connection = await connect_robust(settings.RABBITMQ_URL)
+        rabbitmq_connection = await connect_robust(settings.rabbitmq_url)
         rabbitmq_channel = await rabbitmq_connection.channel()
 
         # Declare queues (matching original setup)

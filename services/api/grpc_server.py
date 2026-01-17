@@ -44,7 +44,7 @@ class APIServicer(ooblex_pb2_grpc.APIServiceServicer):
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "Invalid credentials")
         
         # Create tokens
-        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
         access_token = create_access_token(
             data={"sub": user.username}, 
             expires_delta=access_token_expires
@@ -59,7 +59,7 @@ class APIServicer(ooblex_pb2_grpc.APIServiceServicer):
         response = ooblex_pb2.LoginResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            expires_in=settings.access_token_expire_minutes * 60,
             user=ooblex_pb2.User(
                 id=str(user.id) if hasattr(user, 'id') else user.username,
                 username=user.username,
@@ -77,8 +77,8 @@ class APIServicer(ooblex_pb2_grpc.APIServiceServicer):
             # Verify refresh token
             payload = jwt.decode(
                 request.refresh_token, 
-                settings.JWT_SECRET, 
-                algorithms=[settings.JWT_ALGORITHM]
+                settings.jwt_secret, 
+                algorithms=[settings.jwt_algorithm]
             )
             
             if payload.get("type") != "refresh":
@@ -89,7 +89,7 @@ class APIServicer(ooblex_pb2_grpc.APIServiceServicer):
                 raise ValueError("Invalid token")
             
             # Create new access token
-            access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
             access_token = create_access_token(
                 data={"sub": username}, 
                 expires_delta=access_token_expires
@@ -97,7 +97,7 @@ class APIServicer(ooblex_pb2_grpc.APIServiceServicer):
             
             return ooblex_pb2.RefreshTokenResponse(
                 access_token=access_token,
-                expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+                expires_in=settings.access_token_expire_minutes * 60
             )
             
         except Exception as e:
@@ -313,8 +313,8 @@ class AuthInterceptor(grpc.aio.ServerInterceptor):
             # Verify token
             payload = jwt.decode(
                 token,
-                settings.JWT_SECRET,
-                algorithms=[settings.JWT_ALGORITHM]
+                settings.jwt_secret,
+                algorithms=[settings.jwt_algorithm]
             )
             
             # Add user info to context

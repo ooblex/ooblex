@@ -187,9 +187,9 @@ class WHIPWHEPServer:
             }
             
             # Add Link header for ICE servers
-            if settings.WEBRTC_STUN_SERVERS:
+            if settings.webrtc_stun_servers:
                 ice_servers = []
-                for server in settings.WEBRTC_STUN_SERVERS.split(','):
+                for server in settings.webrtc_stun_servers.split(','):
                     ice_servers.append(f'<{server}>; rel="ice-server"')
                 headers['Link'] = ', '.join(ice_servers)
             
@@ -328,8 +328,8 @@ class WHIPWHEPServer:
             links = []
             
             # ICE servers
-            if settings.WEBRTC_STUN_SERVERS:
-                for server in settings.WEBRTC_STUN_SERVERS.split(','):
+            if settings.webrtc_stun_servers:
+                for server in settings.webrtc_stun_servers.split(','):
                     links.append(f'<{server}>; rel="ice-server"')
             
             # Server-Sent Events for real-time updates
@@ -519,7 +519,7 @@ class WHIPWHEPServer:
 # Standalone server runner
 async def main():
     """Run WHIP/WHEP server standalone"""
-    redis_client = await redis.from_url(settings.REDIS_URL)
+    redis_client = await redis.from_url(settings.redis_url)
     server = WHIPWHEPServer(redis_client)
     
     await server.start()

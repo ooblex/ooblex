@@ -38,13 +38,13 @@ class SimpleMLWorker:
         """Initialize connections"""
         # Redis connection
         self.redis_client = await redis.from_url(
-            settings.REDIS_URL,
+            settings.redis_url,
             encoding="utf-8",
             decode_responses=False
         )
         
         # RabbitMQ connection
-        self.rabbitmq_connection = await connect_robust(settings.RABBITMQ_URL)
+        self.rabbitmq_connection = await connect_robust(settings.rabbitmq_url)
         self.rabbitmq_channel = await self.rabbitmq_connection.channel()
         await self.rabbitmq_channel.set_qos(prefetch_count=1)
         
