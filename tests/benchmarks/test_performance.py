@@ -1,14 +1,37 @@
 """
 Performance benchmarks for Ooblex
 Tests throughput, latency, and resource usage
+
+Requires pytest-benchmark for full benchmark tests.
+Non-benchmark tests will run without it.
 """
 import pytest
 import numpy as np
 import cv2
 import time
-import redis
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Check if pytest-benchmark is available
+try:
+    import pytest_benchmark
+    BENCHMARK_AVAILABLE = True
+except ImportError:
+    BENCHMARK_AVAILABLE = False
+
+# Check if redis is available
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
+
+# Skip marker for benchmark tests
+requires_benchmark = pytest.mark.skipif(
+    not BENCHMARK_AVAILABLE,
+    reason="pytest-benchmark not installed"
+)
 
 
 class TestEncodingBenchmarks:
@@ -29,7 +52,7 @@ class TestEncodingBenchmarks:
         """Generate 1080p test frame"""
         return np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8)
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_jpeg_encoding_480p(self, frame_480p, benchmark):
         """Benchmark JPEG encoding for 480p frames"""
         def encode():
@@ -39,7 +62,7 @@ class TestEncodingBenchmarks:
         assert result[0], "Encoding failed"
         print(f"\n480p JPEG encoding: {benchmark.stats.stats.mean*1000:.2f}ms average")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_jpeg_encoding_720p(self, frame_720p, benchmark):
         """Benchmark JPEG encoding for 720p frames"""
         def encode():
@@ -49,7 +72,7 @@ class TestEncodingBenchmarks:
         assert result[0], "Encoding failed"
         print(f"\n720p JPEG encoding: {benchmark.stats.stats.mean*1000:.2f}ms average")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_jpeg_encoding_1080p(self, frame_1080p, benchmark):
         """Benchmark JPEG encoding for 1080p frames"""
         def encode():
@@ -59,7 +82,7 @@ class TestEncodingBenchmarks:
         assert result[0], "Encoding failed"
         print(f"\n1080p JPEG encoding: {benchmark.stats.stats.mean*1000:.2f}ms average")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_png_encoding_480p(self, frame_480p, benchmark):
         """Benchmark PNG encoding for 480p frames"""
         def encode():
@@ -87,7 +110,7 @@ class TestDecodingBenchmarks:
         success, encoded = cv2.imencode('.jpg', frame)
         return encoded
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_jpeg_decoding_480p(self, encoded_480p, benchmark):
         """Benchmark JPEG decoding for 480p frames"""
         def decode():
@@ -97,7 +120,7 @@ class TestDecodingBenchmarks:
         assert result is not None, "Decoding failed"
         print(f"\n480p JPEG decoding: {benchmark.stats.stats.mean*1000:.2f}ms average")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_jpeg_decoding_720p(self, encoded_720p, benchmark):
         """Benchmark JPEG decoding for 720p frames"""
         def decode():
@@ -115,7 +138,7 @@ class TestImageProcessingBenchmarks:
     def frame_640x480(self):
         return np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_resize_480p_to_256(self, frame_640x480, benchmark):
         """Benchmark resizing 480p to 256x256"""
         def resize():
@@ -125,7 +148,7 @@ class TestImageProcessingBenchmarks:
         assert result.shape == (256, 256, 3)
         print(f"\nResize 480p→256x256: {benchmark.stats.stats.mean*1000:.2f}ms")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_gaussian_blur(self, frame_640x480, benchmark):
         """Benchmark Gaussian blur"""
         def blur():
@@ -135,7 +158,7 @@ class TestImageProcessingBenchmarks:
         assert result.shape == frame_640x480.shape
         print(f"\nGaussian blur: {benchmark.stats.stats.mean*1000:.2f}ms")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_color_conversion(self, frame_640x480, benchmark):
         """Benchmark BGR to RGB conversion"""
         def convert():
@@ -145,7 +168,7 @@ class TestImageProcessingBenchmarks:
         assert result.shape == frame_640x480.shape
         print(f"\nColor conversion: {benchmark.stats.stats.mean*1000:.2f}ms")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     def test_canny_edge_detection(self, frame_640x480, benchmark):
         """Benchmark Canny edge detection"""
         gray = cv2.cvtColor(frame_640x480, cv2.COLOR_BGR2GRAY)
@@ -178,7 +201,7 @@ class TestRedisBenchmarks:
         success, encoded = cv2.imencode('.jpg', frame)
         return encoded.tobytes()
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     @pytest.mark.redis
     def test_redis_set(self, redis_client, encoded_frame, benchmark):
         """Benchmark Redis SET operation"""
@@ -192,7 +215,7 @@ class TestRedisBenchmarks:
         result = benchmark(redis_set)
         print(f"\nRedis SET: {benchmark.stats.stats.mean*1000:.2f}ms")
 
-    @pytest.mark.benchmark
+    @requires_benchmark
     @pytest.mark.redis
     def test_redis_get(self, redis_client, encoded_frame, benchmark):
         """Benchmark Redis GET operation"""

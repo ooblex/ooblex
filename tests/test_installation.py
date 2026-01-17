@@ -88,12 +88,12 @@ class TestOptionalDependencies:
 class TestSystemCommands:
     """Test that system-level commands are available"""
 
-    @pytest.mark.parametrize("command", [
-        "python3",
-        "pip3",
-        "docker",
+    @pytest.mark.parametrize("command,required", [
+        ("python3", True),
+        ("pip3", True),
+        ("docker", False),  # Optional - may not be available in CI
     ])
-    def test_command_exists(self, command):
+    def test_command_exists(self, command, required):
         """Test that required system commands exist"""
         try:
             result = subprocess.run(
@@ -102,12 +102,19 @@ class TestSystemCommands:
                 text=True,
                 check=False
             )
-            assert result.returncode == 0, f"Command '{command}' not found in PATH"
+            if result.returncode != 0:
+                if required:
+                    pytest.fail(f"Required command '{command}' not found in PATH")
+                else:
+                    pytest.skip(f"Optional command '{command}' not found in PATH")
         except Exception as e:
-            pytest.fail(f"Failed to check command {command}: {e}")
+            if required:
+                pytest.fail(f"Failed to check command {command}: {e}")
+            else:
+                pytest.skip(f"Failed to check optional command {command}: {e}")
 
     def test_docker_compose_exists(self):
-        """Test that docker compose is available"""
+        """Test that docker compose is available (optional)"""
         try:
             # Try modern 'docker compose' command
             result = subprocess.run(
@@ -126,9 +133,10 @@ class TestSystemCommands:
                 text=True,
                 check=False
             )
-            assert result.returncode == 0, "Neither 'docker compose' nor 'docker-compose' found"
+            if result.returncode != 0:
+                pytest.skip("Neither 'docker compose' nor 'docker-compose' found (optional)")
         except Exception as e:
-            pytest.skip(f"Docker compose check failed: {e}")
+            pytest.skip(f"Docker compose check failed (optional): {e}")
 
 
 class TestFileStructure:

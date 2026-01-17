@@ -65,7 +65,7 @@ class ModelManager:
             
         # Load model
         start_time = time.time()
-        model_path = os.path.join(settings.MODEL_PATH, f"{model_name}.{model_type}")
+        model_path = os.path.join(settings.model_path, f"{model_name}.{model_type}")
         
         try:
             if model_type == "onnx":
@@ -271,7 +271,7 @@ class MLWorker:
         self.redis_client: Optional[redis.Redis] = None
         self.rabbitmq_connection = None
         self.rabbitmq_channel = None
-        self.model_manager = ModelManager(cache_size=settings.MODEL_CACHE_SIZE)
+        self.model_manager = ModelManager(cache_size=settings.model_cache_size)
         self.processor = MLProcessor(self.model_manager)
         self.running = True
         
@@ -279,13 +279,13 @@ class MLWorker:
         """Initialize connections"""
         # Redis connection
         self.redis_client = await redis.from_url(
-            settings.REDIS_URL,
+            settings.redis_url,
             encoding="utf-8",
             decode_responses=False  # We need binary data for images
         )
         
         # RabbitMQ connection
-        self.rabbitmq_connection = await connect_robust(settings.RABBITMQ_URL)
+        self.rabbitmq_connection = await connect_robust(settings.rabbitmq_url)
         self.rabbitmq_channel = await self.rabbitmq_connection.channel()
         await self.rabbitmq_channel.set_qos(prefetch_count=1)
         

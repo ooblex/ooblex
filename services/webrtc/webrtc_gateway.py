@@ -223,13 +223,13 @@ class WebRTCGateway:
         """Initialize connections"""
         # Redis connection
         self.redis_client = await redis.from_url(
-            settings.REDIS_URL,
+            settings.redis_url,
             encoding="utf-8",
             decode_responses=False
         )
         
         # RabbitMQ connection
-        self.rabbitmq_connection = await connect_robust(settings.RABBITMQ_URL)
+        self.rabbitmq_connection = await connect_robust(settings.rabbitmq_url)
         self.rabbitmq_channel = await self.rabbitmq_connection.channel()
         
         logger.info("WebRTC Gateway initialized")
@@ -390,8 +390,8 @@ class WebRTCGateway:
         # Setup SSL context
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ssl_context.load_cert_chain(
-            certfile=settings.SSL_CERT_PATH,
-            keyfile=settings.SSL_KEY_PATH
+            certfile=settings.ssl_cert_path,
+            keyfile=settings.ssl_key_path
         )
         
         # Start HTTP server for health checks
@@ -406,12 +406,12 @@ class WebRTCGateway:
         logger.info("Health check server started on port 8101")
         
         # Start WebSocket server
-        logger.info(f"Starting WebRTC Gateway on port {settings.WEBRTC_PORT}")
+        logger.info(f"Starting WebRTC Gateway on port {settings.webrtc_port}")
         
         async with websockets.serve(
             self.handle_websocket,
             "0.0.0.0",
-            settings.WEBRTC_PORT,
+            settings.webrtc_port,
             ssl=ssl_context
         ):
             await asyncio.Future()  # Run forever

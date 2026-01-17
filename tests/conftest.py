@@ -10,16 +10,17 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
-from testcontainers.rabbitmq import RabbitMQContainer
+from testcontainers.rabbitmq import RabbitMqContainer
 import redis.asyncio as redis
 from aio_pika import connect_robust
 
 # Add project root to path
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services', 'api'))
 
-from api.main import app
-from api.config import settings
+from main import app
+from config import settings
 
 
 # Override event loop policy for Windows
@@ -52,7 +53,7 @@ def redis_container():
 @pytest.fixture(scope="session")
 def rabbitmq_container():
     """Start RabbitMQ container for testing"""
-    with RabbitMQContainer("rabbitmq:3.12-management-alpine") as rabbitmq:
+    with RabbitMqContainer("rabbitmq:3.12-management-alpine") as rabbitmq:
         yield rabbitmq
 
 

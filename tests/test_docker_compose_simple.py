@@ -11,10 +11,28 @@ This test ensures that the simple docker-compose configuration:
 
 import subprocess
 import time
-import requests
-import redis
-import pika
+import shutil
 from typing import List, Dict
+
+import pytest
+
+# Check if docker is available
+DOCKER_AVAILABLE = shutil.which("docker") is not None
+
+# Skip all tests in this module if docker is not available
+pytestmark = pytest.mark.skipif(
+    not DOCKER_AVAILABLE,
+    reason="Docker is not available"
+)
+
+# Optional imports that require running services
+try:
+    import requests
+    import redis
+    import pika
+    SERVICES_DEPS_AVAILABLE = True
+except ImportError:
+    SERVICES_DEPS_AVAILABLE = False
 
 
 def run_command(cmd: List[str], timeout: int = 60) -> Dict[str, any]:
