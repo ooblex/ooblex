@@ -67,9 +67,12 @@ services:
       API_PORT: 8800
       API_HOST: 0.0.0.0
       LOG_LEVEL: info
+      SSL_ENABLED: "false"
     depends_on:
-      - redis
-      - rabbitmq
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ./code:/app/code:ro
       - ./html:/app/html:ro
@@ -88,8 +91,10 @@ services:
       MJPEG_PORT: 8081
       LOG_LEVEL: info
       ASSETS_PATH: /app/assets
+      SSL_ENABLED: "false"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
       - ./code:/app/code:ro
       - ./assets:/app/assets:ro

@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir \
     opencv-python-headless==4.8.1.78 \
     numpy==1.24.3 \
     redis==5.2.1 \
-    pika==1.3.2 \
+    amqpstorm==2.10.7 \
+    SimpleWebSocketServer==0.1.2 \
     websockets==14.1 \
     aiohttp==3.13.3 \
     python-multipart==0.0.18
