@@ -4,7 +4,7 @@
 
 **Try the demo right now:**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_Demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/master/colab/Ooblex_Demo.ipynb)
 
 1. Click the badge above
 2. Runtime → Change runtime type → **GPU**
@@ -13,7 +13,7 @@
 
 **Run CI tests:**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_CI_Tests.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/master/colab/Ooblex_CI_Tests.ipynb)
 
 **Files:**
 - `colab/Ooblex_Demo.ipynb` - Interactive demo (webcam → GPU → MJPEG)
