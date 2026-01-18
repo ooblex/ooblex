@@ -105,7 +105,11 @@ def remote_threader():
     ssl_enabled = os.getenv('SSL_ENABLED', 'false').lower() == 'true'
     remote_Server = ThreadedHTTPServer(("", mjpeg_port), myHandler)
     if ssl_enabled:
-        remote_Server.socket = ssl.wrap_socket(remote_Server.socket, keyfile=key_pem, certfile=chain_pem, server_side=True)
+        # Use secure SSL context with TLS 1.2+ instead of deprecated wrap_socket
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+        ssl_context.load_cert_chain(certfile=chain_pem, keyfile=key_pem)
+        remote_Server.socket = ssl_context.wrap_socket(remote_Server.socket, server_side=True)
     else:
         print("SSL disabled, using non-SSL HTTP server on port", mjpeg_port)
     remote_Server.serve_forever()

@@ -42,13 +42,14 @@ env/
 !.env.example
 
 # SSL/TLS certificates and keys
-ssl/
-*.pem
-*.key
-*.crt
-*.csr
-*.p12
-*.pfx
+ssl/*.pem
+ssl/*.key
+ssl/*.crt
+ssl/*.csr
+ssl/*.p12
+ssl/*.pfx
+# Keep the certificate generation script
+!ssl/generate_certs.sh
 
 # Docker
 *.log
