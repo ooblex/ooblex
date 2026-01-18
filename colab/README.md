@@ -6,7 +6,7 @@ One-click demos and CI/CD testing for Ooblex on Google Colab with free GPU suppo
 
 ### Demo (One-Click)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_Demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/master/colab/Ooblex_Demo.ipynb)
 
 1. Click the badge above (or open `Ooblex_Demo.ipynb` in Colab)
 2. Go to Runtime → Change runtime type → **GPU**
@@ -16,7 +16,7 @@ One-click demos and CI/CD testing for Ooblex on Google Colab with free GPU suppo
 
 ### CI/CD Testing
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_CI_Tests.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/master/colab/Ooblex_CI_Tests.ipynb)
 
 Run automated tests to verify Ooblex functionality:
 - Environment checks (OpenCV, PyTorch, MediaPipe)
