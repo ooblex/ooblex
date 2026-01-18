@@ -41,6 +41,7 @@ python-jose[cryptography]==3.4.0  # Updated from 3.3.0 to fix CVE-2024-33663 (CV
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.18
 cryptography==45.0.5  # Updated to latest secure version (matches webrtc service)
+ecdsa>=0.19.0  # Updated to fix Minerva timing attack on P-256 (CVE-2024-23342)
 
 # Monitoring and Logging
 prometheus-client==0.21.1

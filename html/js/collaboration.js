@@ -118,8 +118,9 @@ class CollaborationClient {
             'recording_stopped': this.handleRecordingStopped.bind(this)
         };
         
-        const handler = handlers[message.type];
-        if (handler) {
+        // Validate message type against known handlers to prevent prototype pollution
+        if (Object.prototype.hasOwnProperty.call(handlers, message.type)) {
+            const handler = handlers[message.type];
             handler(message);
         }
     }
@@ -903,12 +904,18 @@ class CollaborationClient {
     }
     
     generateUserId() {
-        return 'user_' + Math.random().toString(36).substr(2, 9);
+        // Use crypto.getRandomValues for secure random ID generation
+        const array = new Uint8Array(12);
+        crypto.getRandomValues(array);
+        return 'user_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, 9);
     }
-    
+
     generateUserColor() {
         const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
-        return colors[Math.floor(Math.random() * colors.length)];
+        // Use crypto.getRandomValues for secure random selection
+        const array = new Uint32Array(1);
+        crypto.getRandomValues(array);
+        return colors[array[0] % colors.length];
     }
     
     escapeHtml(text) {
