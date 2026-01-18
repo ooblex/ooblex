@@ -112,23 +112,86 @@ print(f"MJPEG Stream: {mjpeg_tunnel.public_url}/stream.mjpg")
 
 **Problem:** WebRTC requires STUN/TURN for NAT traversal. Colab is behind NAT.
 
-**Solutions:**
-1. **Use public TURN servers** (Twilio, Xirsys, or self-hosted)
-2. **Use ngrok TCP tunnel** for signaling + rely on TURN for media
-3. **Fallback to HTTP-based ingestion** (less ideal, higher latency)
+**Understanding STUN vs TURN:**
+
+| Protocol | Purpose | When It Works | Cost |
+|----------|---------|---------------|------|
+| **STUN** | Discovers public IP/port | Full cone, restricted cone, port-restricted NAT | Free (Google, Cloudflare) |
+| **TURN** | Relays all media traffic | Symmetric NAT (like Colab), firewalls | Free via VDO.Ninja |
+
+- **STUN alone** works ~80% of the time for typical home networks
+- **TURN fallback** needed when both peers are behind symmetric NAT (Colab's case)
+- WebRTC automatically tries STUN first, falls back to TURN if needed
+
+**Solution: Use Free STUN + VDO.Ninja TURN Servers**
+
+VDO.Ninja provides **free TURN servers** at `https://turnservers.vdo.ninja/` that can be fetched dynamically:
 
 ```python
-# WebRTC configuration with TURN
+import aiohttp
+import asyncio
+
+async def get_ice_servers():
+    """Fetch free TURN servers from VDO.Ninja."""
+    # Free STUN servers (Google, Cloudflare)
+    ice_servers = [
+        {"urls": "stun:stun.l.google.com:19302"},
+        {"urls": "stun:stun1.l.google.com:19302"},
+        {"urls": "stun:stun.cloudflare.com:3478"},
+    ]
+
+    # Fetch free TURN servers from VDO.Ninja
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://turnservers.vdo.ninja/") as resp:
+                data = await resp.json()
+                for server in data.get("servers", []):
+                    ice_servers.append({
+                        "urls": server["url"],
+                        "username": server["username"],
+                        "credential": server["credential"]
+                    })
+    except Exception as e:
+        # Fallback to hardcoded VDO.Ninja TURN servers
+        ice_servers.extend([
+            {
+                "urls": "turn:turn-use1.vdo.ninja:3478",
+                "username": "vdoninja",
+                "credential": "EastSideRepresentZ"
+            },
+            {
+                "urls": "turn:turn-use2.vdo.ninja:3478",
+                "username": "vdoninja",
+                "credential": "pleaseUseYourOwn"
+            }
+        ])
+
+    return ice_servers
+
+# Example ICE configuration (hardcoded fallback)
 ICE_SERVERS = [
+    # Free STUN (address discovery)
     {"urls": "stun:stun.l.google.com:19302"},
-    {"urls": "stun:stun1.l.google.com:19302"},
+    {"urls": "stun:stun.cloudflare.com:3478"},
+    # Free TURN from VDO.Ninja (relay when STUN fails)
     {
-        "urls": "turn:your-turn-server.com:3478",
-        "username": "user",
-        "credential": "pass"
+        "urls": "turn:turn-use1.vdo.ninja:3478",
+        "username": "vdoninja",
+        "credential": "EastSideRepresentZ"
+    },
+    {
+        "urls": "turns:turn-use1.vdo.ninja:3478",  # TLS variant
+        "username": "vdoninja",
+        "credential": "EastSideRepresentZ"
     }
 ]
 ```
+
+**Why This Works:**
+1. Browser/client tries **STUN** first (free, fast, direct connection)
+2. If STUN fails (symmetric NAT), falls back to **TURN** relay
+3. VDO.Ninja TURN servers are free and reliable
+4. No paid TURN service needed for most use cases
 
 ### Challenge 3: Session Time Limits
 
@@ -1269,21 +1332,26 @@ keep_alive()
 | Timeout | 12h | 24h | 24h |
 | Background | No | Yes | Yes |
 
-### TURN Server Costs
+### TURN Server Options
 
-| Provider | Free Tier | Paid |
-|----------|-----------|------|
-| Twilio | 500 hours/month | $0.0004/min |
-| Xirsys | 500MB/month | $0.08/GB |
-| Self-hosted | Free (infra cost) | ~$5-20/month |
+| Provider | Cost | Notes |
+|----------|------|-------|
+| **VDO.Ninja** | **Free** | Recommended! Fetch from `https://turnservers.vdo.ninja/` |
+| Google STUN | Free | STUN only (no relay), works for most clients |
+| Cloudflare STUN | Free | STUN only, `stun:stun.cloudflare.com:3478` |
+| Twilio | 500 hrs free, then $0.0004/min | Enterprise option |
+| Xirsys | 500MB free, then $0.08/GB | Enterprise option |
+| Self-hosted (coturn) | Free (infra cost) | Full control, ~$5-20/month VPS |
+
+**Recommendation:** Use VDO.Ninja free TURN servers - they're reliable and cost nothing.
 
 ### Total Monthly Cost Estimate
 
 | Scenario | Cost |
 |----------|------|
-| Minimal (Free Colab + Free TURN) | $0 |
-| Standard (Pro + Twilio) | ~$15/month |
-| Heavy (Pro+ + High TURN usage) | ~$70/month |
+| **Free Colab + VDO.Ninja TURN** | **$0** |
+| Colab Pro (better GPU access) | ~$10/month |
+| Colab Pro+ (A100, background) | ~$50/month |
 
 ---
 
