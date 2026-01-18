@@ -201,7 +201,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHIP POST error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_whip_patch(self, request: web.Request) -> web.Response:
         """Handle WHIP PATCH - ICE candidates"""
@@ -228,7 +228,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHIP PATCH error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_whip_delete(self, request: web.Request) -> web.Response:
         """Handle WHIP DELETE - stop ingestion"""
@@ -259,7 +259,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHIP DELETE error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_whep_post(self, request: web.Request) -> web.Response:
         """Handle WHEP POST - create new egress"""
@@ -349,7 +349,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHEP POST error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_whep_patch(self, request: web.Request) -> web.Response:
         """Handle WHEP PATCH - ICE candidates or layer selection"""
@@ -381,7 +381,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHEP PATCH error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_whep_delete(self, request: web.Request) -> web.Response:
         """Handle WHEP DELETE - stop egress"""
@@ -413,7 +413,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"WHEP DELETE error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_list_streams(self, request: web.Request) -> web.Response:
         """List available streams"""
@@ -453,7 +453,7 @@ class WHIPWHEPServer:
             
         except Exception as e:
             logger.error(f"List streams error: {e}")
-            return web.Response(status=500, text=str(e))
+            return web.Response(status=500, text='Internal server error')
     
     async def handle_health(self, request: web.Request) -> web.Response:
         """Health check endpoint"""

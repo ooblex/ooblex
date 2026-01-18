@@ -221,28 +221,54 @@ async function handlePreload(moduleNames) {
     await Promise.all(promises);
 }
 
+// Allowed module names whitelist for security
+const ALLOWED_MODULES = new Set([
+    'face_detection',
+    'style_transfer',
+    'background_blur'
+]);
+
+// Validate module name to prevent path traversal
+function isValidModuleName(name) {
+    // Only allow alphanumeric characters and underscores
+    return ALLOWED_MODULES.has(name) && /^[a-zA-Z0-9_]+$/.test(name);
+}
+
 // Load WASM module
 async function loadModule(moduleName) {
     if (modules[moduleName]) {
         return modules[moduleName];
     }
-    
+
+    // Validate module name to prevent injection attacks
+    if (!isValidModuleName(moduleName)) {
+        throw new Error(`Invalid module name: ${moduleName}`);
+    }
+
     try {
-        // Import module dynamically
-        const moduleUrl = `${config.serverUrl}/api/edge/modules/${moduleName}`;
+        // Import module dynamically using WebAssembly
+        const moduleUrl = `${config.serverUrl}/api/edge/modules/${encodeURIComponent(moduleName)}.wasm`;
         const response = await fetch(moduleUrl);
-        const moduleText = await response.text();
-        
-        // Create module function and execute
-        const moduleFunction = new Function('return ' + moduleText)();
-        const module = await moduleFunction();
-        
-        modules[moduleName] = module;
-        console.log(`Loaded WASM module: ${moduleName}`);
-        
-        return module;
+
+        // Validate response content type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/wasm')) {
+            throw new Error(`Invalid content type for module ${moduleName}: ${contentType}`);
+        }
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch module ${moduleName}: ${response.status}`);
+        }
+
+        // Use WebAssembly.instantiateStreaming for safe module loading
+        const wasmModule = await WebAssembly.instantiateStreaming(response);
+
+        modules[moduleName] = wasmModule.instance.exports;
+        console.log('Loaded WASM module:', moduleName);
+
+        return modules[moduleName];
     } catch (error) {
-        console.error(`Failed to load module ${moduleName}:`, error);
+        console.error('Failed to load module %s:', moduleName, error.message);
         throw error;
     }
 }
@@ -262,7 +288,10 @@ function handleCleanup() {
 function getWorkerId() {
     let workerId = self.workerId;
     if (!workerId) {
-        workerId = 'worker_' + Math.random().toString(36).substr(2, 9);
+        // Use crypto.getRandomValues for secure random ID generation
+        const array = new Uint8Array(12);
+        crypto.getRandomValues(array);
+        workerId = 'worker_' + Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, 9);
         self.workerId = workerId;
     }
     return workerId;

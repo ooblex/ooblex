@@ -102,7 +102,11 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 def remote_threader():
     remote_Server = ThreadedHTTPServer(("", 81), myHandler)
-    remote_Server.socket = ssl.wrap_socket(remote_Server.socket, keyfile=key_pem, certfile=chain_pem, server_side=True)
+    # Use secure SSL context with TLS 1.2+ instead of deprecated wrap_socket
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+    ssl_context.load_cert_chain(certfile=chain_pem, keyfile=key_pem)
+    remote_Server.socket = ssl_context.wrap_socket(remote_Server.socket, server_side=True)
     remote_Server.serve_forever()
     print("end")
 
