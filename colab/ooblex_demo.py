@@ -35,9 +35,22 @@ except ImportError:
 
 try:
     import mediapipe as mp
-    MEDIAPIPE_AVAILABLE = True
+    # Check if the new or old API is available
+    if hasattr(mp, 'solutions'):
+        MEDIAPIPE_AVAILABLE = True
+    else:
+        # Try new API (mediapipe >= 0.10.8)
+        try:
+            from mediapipe.tasks import python as mp_tasks
+            from mediapipe.tasks.python import vision as mp_vision
+            MEDIAPIPE_AVAILABLE = True
+            MEDIAPIPE_NEW_API = True
+        except ImportError:
+            MEDIAPIPE_AVAILABLE = False
+            MEDIAPIPE_NEW_API = False
 except ImportError:
     MEDIAPIPE_AVAILABLE = False
+    MEDIAPIPE_NEW_API = False
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -101,22 +114,29 @@ class EffectsProcessor:
         # MediaPipe models (GPU accelerated)
         if MEDIAPIPE_AVAILABLE:
             try:
-                self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
-                    max_num_faces=2,
-                    min_detection_confidence=0.5,
-                    min_tracking_confidence=0.5
-                )
-                self.mp_drawing = mp.solutions.drawing_utils
-                self.mp_drawing_styles = mp.solutions.drawing_styles
-                logger.info("MediaPipe Face Mesh loaded (GPU accelerated)")
+                # Try the legacy API first (mp.solutions)
+                if hasattr(mp, 'solutions') and hasattr(mp.solutions, 'face_mesh'):
+                    self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
+                        max_num_faces=2,
+                        min_detection_confidence=0.5,
+                        min_tracking_confidence=0.5
+                    )
+                    self.mp_drawing = mp.solutions.drawing_utils
+                    self.mp_drawing_styles = mp.solutions.drawing_styles
+                    logger.info("MediaPipe Face Mesh loaded (legacy API)")
+                else:
+                    logger.info("MediaPipe Face Mesh not available (new API not yet supported)")
             except Exception as e:
                 logger.warning(f"Could not load MediaPipe Face Mesh: {e}")
 
             try:
-                self.mp_selfie_seg = mp.solutions.selfie_segmentation.SelfieSegmentation(
-                    model_selection=1
-                )
-                logger.info("MediaPipe Selfie Segmentation loaded (GPU accelerated)")
+                if hasattr(mp, 'solutions') and hasattr(mp.solutions, 'selfie_segmentation'):
+                    self.mp_selfie_seg = mp.solutions.selfie_segmentation.SelfieSegmentation(
+                        model_selection=1
+                    )
+                    logger.info("MediaPipe Selfie Segmentation loaded (legacy API)")
+                else:
+                    logger.info("MediaPipe Selfie Segmentation not available (new API not yet supported)")
             except Exception as e:
                 logger.warning(f"Could not load MediaPipe Selfie Segmentation: {e}")
 
@@ -435,24 +455,71 @@ class OoblexDemo:
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
                 self.end_headers()
 
-        server = HTTPServer(('0.0.0.0', self.config.port), MJPEGHandler)
-        logger.info(f"MJPEG server started on port {self.config.port}")
+        # Try to bind to port, with fallback to alternative ports
+        port = self.config.port
+        server = None
+        for attempt in range(10):  # Try up to 10 ports
+            try:
+                server = HTTPServer(('0.0.0.0', port), MJPEGHandler)
+                self.config.port = port  # Update config with actual port
+                logger.info(f"MJPEG server started on port {port}")
+                break
+            except OSError as e:
+                if "Address already in use" in str(e):
+                    logger.warning(f"Port {port} in use, trying {port + 1}")
+                    port += 1
+                else:
+                    raise
+
+        if server is None:
+            logger.error("Could not find available port")
+            return
+
         server.serve_forever()
 
     def _setup_tunnel(self) -> Optional[str]:
-        """Setup ngrok tunnel for external access."""
+        """Setup tunnel for external access. Tries ngrok first, then localtunnel."""
+        # Try ngrok first
         try:
             from pyngrok import ngrok
             tunnel = ngrok.connect(self.config.port, "http")
             self.tunnel_url = tunnel.public_url
-            logger.info(f"Tunnel URL: {self.tunnel_url}")
+            logger.info(f"ngrok tunnel URL: {self.tunnel_url}")
             return self.tunnel_url
         except ImportError:
-            logger.warning("pyngrok not installed - no tunnel available")
-            return None
+            logger.info("pyngrok not installed, trying localtunnel...")
         except Exception as e:
-            logger.warning(f"Could not create tunnel: {e}")
-            return None
+            if "authtoken" in str(e).lower() or "authentication" in str(e).lower():
+                logger.warning("ngrok requires auth token. Get free token at https://ngrok.com")
+                logger.info("Trying localtunnel as alternative...")
+            else:
+                logger.warning(f"ngrok failed: {e}")
+
+        # Try localtunnel as fallback (no auth required)
+        try:
+            import subprocess
+            import re
+
+            # Check if localtunnel is installed, if not install it
+            result = subprocess.run(
+                ["npx", "localtunnel", "--port", str(self.config.port)],
+                capture_output=True,
+                text=True,
+                timeout=15
+            )
+            # Parse URL from output
+            match = re.search(r'https://[^\s]+\.loca\.lt', result.stdout + result.stderr)
+            if match:
+                self.tunnel_url = match.group(0)
+                logger.info(f"localtunnel URL: {self.tunnel_url}")
+                return self.tunnel_url
+        except Exception as e:
+            logger.info(f"localtunnel not available: {e}")
+
+        # No tunnel available - use Colab's built-in proxy
+        logger.info("No external tunnel available. Using Colab's localhost proxy.")
+        logger.info("For external access, set ngrok token or install localtunnel.")
+        return None
 
     def start(self, use_tunnel: bool = True):
         """Start the demo server."""
@@ -462,7 +529,10 @@ class OoblexDemo:
         self._server_thread = threading.Thread(target=self._start_http_server, daemon=True)
         self._server_thread.start()
 
-        # Setup tunnel
+        # Wait for server to start
+        time.sleep(1)
+
+        # Setup tunnel (optional)
         if use_tunnel:
             self._setup_tunnel()
 
@@ -534,6 +604,17 @@ class OoblexDemo:
 
                 <div class="ooblex-status" id="statusDiv">
                     Status: Ready to start
+                </div>
+
+                <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px;">
+                    <b>Camera not working?</b><br>
+                    • Click the camera icon in browser address bar to allow access<br>
+                    • If in Colab: Try opening the tunnel URL directly in a new tab<br>
+                    • Or use <b>Test Pattern</b> button below to demo without camera
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <button class="ooblex-btn" style="background:#4caf50;color:white" onclick="startTestPattern()">Use Test Pattern</button>
                 </div>
 
                 <div class="ooblex-urls">
@@ -611,6 +692,72 @@ class OoblexDemo:
                 }} catch(e) {{
                     console.log('Effect change error:', e);
                 }}
+            }}
+
+            function startTestPattern() {{
+                // Generate test pattern frames without camera
+                document.getElementById('statusDiv').innerHTML = 'Status: <b style="color:green">Using test pattern (no camera)</b>';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = {self.config.frame_width};
+                canvas.height = {self.config.frame_height};
+                const ctx = canvas.getContext('2d');
+
+                let frame = 0;
+                captureInterval = setInterval(async () => {{
+                    // Draw colorful test pattern
+                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    gradient.addColorStop(0, `hsl(${{frame % 360}}, 70%, 50%)`);
+                    gradient.addColorStop(1, `hsl(${{(frame + 180) % 360}}, 70%, 50%)`);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw moving circles
+                    for (let i = 0; i < 5; i++) {{
+                        ctx.beginPath();
+                        const x = (Math.sin(frame * 0.02 + i) + 1) * canvas.width / 2;
+                        const y = (Math.cos(frame * 0.03 + i * 2) + 1) * canvas.height / 2;
+                        ctx.arc(x, y, 30 + i * 10, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,255,255,0.5)`;
+                        ctx.fill();
+                    }}
+
+                    // Add text
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('OOBLEX TEST PATTERN', canvas.width/2, canvas.height/2);
+                    ctx.font = '16px Arial';
+                    ctx.fillText(`Frame: ${{frame}}`, canvas.width/2, canvas.height/2 + 30);
+
+                    frame++;
+
+                    // Show in input preview
+                    document.getElementById('webcamVideo').style.display = 'none';
+                    const preview = document.getElementById('testPreview') || createTestPreview();
+                    preview.src = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Send to server
+                    try {{
+                        await fetch(SERVER_URL + '/frame', {{
+                            method: 'POST',
+                            body: canvas.toDataURL('image/jpeg', 0.8),
+                            mode: 'cors'
+                        }});
+                    }} catch(e) {{}}
+                }}, {int(1000 / self.config.max_fps)});
+
+                // Start output stream
+                document.getElementById('outputStream').src = SERVER_URL + '/stream.mjpg';
+            }}
+
+            function createTestPreview() {{
+                const img = document.createElement('img');
+                img.id = 'testPreview';
+                img.style.width = '100%';
+                img.style.borderRadius = '8px';
+                document.getElementById('webcamVideo').parentNode.appendChild(img);
+                return img;
             }}
         </script>
         '''
