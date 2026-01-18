@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
 from pydantic import BaseModel, Field
 import redis.asyncio as redis
 from aio_pika import connect_robust, Message, DeliveryMode
@@ -27,7 +27,7 @@ logger = setup_logger(__name__)
 request_count = Counter('api_requests_total', 'Total API requests', ['method', 'endpoint', 'status'])
 request_duration = Histogram('api_request_duration_seconds', 'API request duration', ['method', 'endpoint'])
 websocket_connections = Counter('websocket_connections_total', 'Total WebSocket connections')
-active_connections = Counter('websocket_active_connections', 'Active WebSocket connections')
+active_connections_gauge = Gauge('websocket_active_connections', 'Active WebSocket connections')
 
 # Global connections
 redis_client: Optional[redis.Redis] = None
@@ -213,14 +213,14 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, client_id: str):
         await websocket.accept()
         self.active_connections[client_id] = websocket
-        active_connections.inc()
+        active_connections_gauge.inc()
         websocket_connections.inc()
         logger.info(f"Client {client_id} connected. Total: {len(self.active_connections)}")
 
     def disconnect(self, client_id: str):
         if client_id in self.active_connections:
             del self.active_connections[client_id]
-            active_connections.dec()
+            active_connections_gauge.dec()
             # Clean up stream token mapping
             for token, cid in list(self.stream_tokens.items()):
                 if cid == client_id:

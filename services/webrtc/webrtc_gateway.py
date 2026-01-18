@@ -21,6 +21,7 @@ from prometheus_client import Counter, Gauge, Histogram, start_http_server
 from pyee.asyncio import AsyncIOEventEmitter
 import av
 import numpy as np
+import cv2
 
 from config import settings
 from logger import setup_logger

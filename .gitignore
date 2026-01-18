@@ -67,9 +67,13 @@ Thumbs.db
 # Testing
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 .tox/
 .hypothesis/
+
+# OpenCV cascades (downloaded at runtime)
+**/cascades/
 
 # Jupyter Notebook
 .ipynb_checkpoints
