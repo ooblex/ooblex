@@ -1,11 +1,36 @@
 # Google Colab Deployment Plan for Ooblex
 
+## Quick Start (TL;DR)
+
+**Try the demo right now:**
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_Demo.ipynb)
+
+1. Click the badge above
+2. Runtime → Change runtime type → **GPU**
+3. Run all cells
+4. Click "Start Camera" and select an effect
+
+**Run CI tests:**
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ooblex/ooblex/blob/main/colab/Ooblex_CI_Tests.ipynb)
+
+**Files:**
+- `colab/Ooblex_Demo.ipynb` - Interactive demo (webcam → GPU → MJPEG)
+- `colab/Ooblex_CI_Tests.ipynb` - Automated test suite
+- `colab/ooblex_demo.py` - Core server module
+- `colab/README.md` - Usage documentation
+
+---
+
 ## Executive Summary
 
 This document outlines the comprehensive plan to deploy Ooblex on Google Colab, enabling:
 - **WebRTC video ingestion** from browsers/devices
 - **GPU-accelerated AI processing** using Colab's free/paid GPUs
 - **MJPEG stream output** for universal viewing compatibility
+
+**Status: IMPLEMENTED** - See `colab/` directory for working notebooks.
 
 ---
 
