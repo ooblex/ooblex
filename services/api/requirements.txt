@@ -5,7 +5,7 @@ pydantic==2.10.4
 pydantic-settings==2.7.0
 python-jose[cryptography]==3.4.0  # Updated from 3.3.0 to fix CVE-2024-33663 (CVSS 9.3) and CVE-2024-33664
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.18
+python-multipart==0.0.22
 cryptography>=45.0.0  # Updated to fix Bleichenbacher timing attack and PKCS12 vulnerabilities
 ecdsa>=0.19.0  # Updated to fix Minerva timing attack on P-256 (CVE-2024-23342)
 aiohttp==3.13.3  # Already at secure version (fixes CVE-2025-53643)
