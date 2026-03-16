@@ -1,11 +1,11 @@
 torch==2.8.0
 torchvision==0.20.1
 tensorflow==2.18.0
-onnx==1.17.0
+onnx==1.21.0rc1
 onnxruntime-gpu==1.20.1
 numpy==1.26.4
 opencv-python-headless==4.10.0.84
-Pillow==11.3.0  # Updated from 11.0.0 to latest secure version
+Pillow==12.1.1  # Updated from 11.0.0 to latest secure version
 scikit-learn==1.5.2
 mediapipe==0.10.18
 redis==5.2.1
