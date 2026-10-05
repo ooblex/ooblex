@@ -12,19 +12,27 @@ import io
 import json
 import logging
 import os
-from pathlib import Path
 import threading
 import time
 import types
 import unittest
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 from unittest.mock import patch
 
-
-SOURCE = Path(os.environ.get("OOBLEX_DEMO_SOURCE", Path(__file__).resolve().parents[2] / "colab/ooblex_demo.py"))
+SOURCE = Path(
+    os.environ.get(
+        "OOBLEX_DEMO_SOURCE",
+        Path(__file__).resolve().parents[2] / "colab/ooblex_demo.py",
+    )
+)
 tree = ast.parse(SOURCE.read_text(), filename=str(SOURCE))
-tree.body = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name in {"DemoConfig", "OoblexDemo"}]
+tree.body = [
+    node
+    for node in tree.body
+    if isinstance(node, ast.ClassDef) and node.name in {"DemoConfig", "OoblexDemo"}
+]
 namespace = {
     "dataclass": dataclass,
     "Optional": Optional,
@@ -70,7 +78,9 @@ class ConcurrencyTests(unittest.TestCase):
         demo.processed_frame = initial_frame
         demo.current_effect = "none"
         demo.fps = 0
-        demo.processor = types.SimpleNamespace(get_available_effects=lambda: {"none": "Original", "mirror": "Mirror"})
+        demo.processor = types.SimpleNamespace(
+            get_available_effects=lambda: {"none": "Original", "mirror": "Mirror"}
+        )
         received = threading.Event()
         captured = []
 
@@ -115,6 +125,7 @@ class ConcurrencyTests(unittest.TestCase):
 
             def handle_error(self, request, address):
                 import sys
+
                 errors.append(sys.exception())
 
         class SerialTransport(TransportOnly, http.server.HTTPServer):
@@ -123,23 +134,41 @@ class ConcurrencyTests(unittest.TestCase):
         class ThreadedTransport(TransportOnly, http.server.ThreadingHTTPServer):
             pass
 
-        with patch.object(http.server, "HTTPServer", SerialTransport), patch.object(http.server, "ThreadingHTTPServer", ThreadedTransport):
+        with (
+            patch.object(http.server, "HTTPServer", SerialTransport),
+            patch.object(http.server, "ThreadingHTTPServer", ThreadedTransport),
+        ):
             thread = threading.Thread(target=demo._start_http_server, daemon=True)
             thread.start()
             try:
-                self.assertTrue(streams[0].headers_written.wait(1), "stream handler did not start")
-                self.assertTrue(received.wait(0.5), "active MJPEG stream blocks incoming /frame POST")
+                self.assertTrue(
+                    streams[0].headers_written.wait(1), "stream handler did not start"
+                )
+                self.assertTrue(
+                    received.wait(0.5),
+                    "active MJPEG stream blocks incoming /frame POST",
+                )
                 for request in [post, effect, status, snapshot, effects]:
-                    self.assertTrue(request.closed.wait(1), "control request blocked by stream")
+                    self.assertTrue(
+                        request.closed.wait(1), "control request blocked by stream"
+                    )
                     self.assertIn(b"200 OK", request.output)
                 self.assertEqual(captured, ["synthetic-jpeg-input"])
                 self.assertEqual(demo.current_effect, "mirror")
-                self.assertEqual(json.loads(bytes(status.output).split(b"\r\n\r\n", 1)[1])["running"], True)
+                self.assertEqual(
+                    json.loads(bytes(status.output).split(b"\r\n\r\n", 1)[1])[
+                        "running"
+                    ],
+                    True,
+                )
                 self.assertIn(b"NEW_JPEG_FRAME", snapshot.output)
                 self.assertIn(b"Original", effects.output)
                 for stream in streams:
                     self.assertTrue(stream.headers_written.wait(1))
-                    self.assertFalse(stream.closed.is_set(), "stream must remain active while POST and controls finish")
+                    self.assertFalse(
+                        stream.closed.is_set(),
+                        "stream must remain active while POST and controls finish",
+                    )
                 self.assertTrue(dispatcher_done.wait(1))
                 self.assertEqual(errors, [])
             finally:
