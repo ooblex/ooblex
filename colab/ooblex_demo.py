@@ -364,7 +364,7 @@ class OoblexDemo:
 
     def _start_http_server(self):
         """Start HTTP server for MJPEG streaming."""
-        from http.server import HTTPServer, BaseHTTPRequestHandler
+        from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
         import json as json_module
 
         demo = self
@@ -460,7 +460,7 @@ class OoblexDemo:
         server = None
         for attempt in range(10):  # Try up to 10 ports
             try:
-                server = HTTPServer(('0.0.0.0', port), MJPEGHandler)
+                server = ThreadingHTTPServer(('0.0.0.0', port), MJPEGHandler)
                 self.config.port = port  # Update config with actual port
                 logger.info(f"MJPEG server started on port {port}")
                 break

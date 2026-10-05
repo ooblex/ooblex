@@ -17,6 +17,17 @@ env:
   RABBITMQ_URL: amqp://guest:guest@localhost:5672
 
 jobs:
+  test-colab-http:
+    name: Colab HTTP Concurrency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Run dependency-free Colab regressions
+        run: python tests/unit/test_colab_http_concurrency.py
+
   lint:
     name: Code Linting
     runs-on: ubuntu-latest
